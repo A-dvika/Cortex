@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:lemma.work)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm view *)",
+      "Bash(npm --version)",
+      "Bash(uv --version)",
+      "Bash(docker --version)",
+      "Bash(git --version)",
+      "Bash(python -m pip install --quiet --upgrade uv)",
+      "Bash(python -m uv --version)",
+      "Bash(python -m uv tool install lemma-terminal)"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "persist_triage",
+  "description": "Deterministically writes the triaged issue, its scored bug row, and the suggested fix into the pod tables. Returns the created ids.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "issues",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "fixes",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] }
+  ] }
+}

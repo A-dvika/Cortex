@@ -1,0 +1,13 @@
+{
+  "name": "escalate_incidents",
+  "description": "Sweeps open P1 incidents and pages the escalation channel for any unacked past alert_config.escalation_minutes. Run on a schedule via escalate-incidents.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "incidents",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "alert_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

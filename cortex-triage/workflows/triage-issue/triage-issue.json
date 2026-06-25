@@ -1,0 +1,94 @@
+{
+  "name": "triage-issue",
+  "description": "Intake a bug report, classify and score it, suggest a fix, then persist issue + bug + fix rows.",
+  "start": { "type": "MANUAL" },
+  "nodes": [
+    { "id": "intake", "type": "FORM", "label": "New bug report",
+      "config": { "input_schema": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "title": "Title" },
+          "body": { "type": "string", "title": "Description", "default": "" },
+          "source": { "type": "string", "title": "Source", "enum": ["github", "slack", "email", "manual"], "default": "manual" },
+          "url": { "type": "string", "title": "Link", "default": "" },
+          "reporter": { "type": "string", "title": "Reporter", "default": "" },
+          "external_id": { "type": "string", "title": "External id", "default": "" }
+        },
+        "required": ["title"]
+      } } },
+
+    { "id": "triage", "type": "AGENT", "label": "Classify & score",
+      "config": { "agent_name": "triage-agent",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "intake.title" },
+          "body": { "type": "expression", "value": "intake.body" }
+        } } },
+
+    { "id": "suggest", "type": "AGENT", "label": "Suggest a fix",
+      "config": { "agent_name": "fix-suggester",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "intake.title" },
+          "body": { "type": "expression", "value": "intake.body" },
+          "bug_type": { "type": "expression", "value": "triage.bug_type" }
+        } } },
+
+    { "id": "persist", "type": "FUNCTION", "label": "Save issue, bug & fix",
+      "config": { "function_name": "persist_triage",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "intake.title" },
+          "body": { "type": "expression", "value": "intake.body" },
+          "source": { "type": "expression", "value": "intake.source" },
+          "url": { "type": "expression", "value": "intake.url" },
+          "reporter": { "type": "expression", "value": "intake.reporter" },
+          "external_id": { "type": "expression", "value": "intake.external_id" },
+          "bug_type": { "type": "expression", "value": "triage.bug_type" },
+          "severity": { "type": "expression", "value": "triage.severity" },
+          "impact_score": { "type": "expression", "value": "triage.impact_score" },
+          "urgency_score": { "type": "expression", "value": "triage.urgency_score" },
+          "confidence": { "type": "expression", "value": "triage.confidence" },
+          "is_duplicate": { "type": "expression", "value": "triage.is_duplicate" },
+          "duplicate_of": { "type": "expression", "value": "triage.duplicate_of" },
+          "reasoning": { "type": "expression", "value": "triage.reasoning" },
+          "fix_title": { "type": "expression", "value": "suggest.fix_title" },
+          "fix_suggestion": { "type": "expression", "value": "suggest.fix_suggestion" },
+          "fix_code": { "type": "expression", "value": "suggest.fix_code" },
+          "risk_level": { "type": "expression", "value": "suggest.risk_level" },
+          "estimated_effort": { "type": "expression", "value": "suggest.estimated_effort" },
+          "fix_confidence": { "type": "expression", "value": "suggest.fix_confidence" }
+        } } },
+
+    { "id": "incident", "type": "FUNCTION", "label": "Open incident & alert",
+      "config": { "function_name": "open_incident",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "intake.title" },
+          "summary": { "type": "expression", "value": "triage.reasoning" },
+          "severity": { "type": "expression", "value": "triage.severity" },
+          "bug_id": { "type": "expression", "value": "persist.bug_id" },
+          "source": { "type": "expression", "value": "intake.source" }
+        } } },
+
+    { "id": "owner", "type": "FUNCTION", "label": "Suggest owner (GitHub)",
+      "config": { "function_name": "suggest_owner",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
+    { "id": "auto_resolve", "type": "FUNCTION", "label": "Auto-resolve (PR if eligible)",
+      "config": { "function_name": "open_fix_pr",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
+    { "id": "end", "type": "END", "label": "Triaged" }
+  ],
+  "edges": [
+    { "id": "e1", "source": "intake", "target": "triage" },
+    { "id": "e2", "source": "triage", "target": "suggest" },
+    { "id": "e3", "source": "suggest", "target": "persist" },
+    { "id": "e4", "source": "persist", "target": "owner" },
+    { "id": "e5", "source": "owner", "target": "incident" },
+    { "id": "e6", "source": "incident", "target": "auto_resolve" },
+    { "id": "e7", "source": "auto_resolve", "target": "end" }
+  ],
+  "visibility": "POD"
+}

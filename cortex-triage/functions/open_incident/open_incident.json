@@ -1,0 +1,15 @@
+{
+  "name": "open_incident",
+  "description": "Creates an incident row and, depending on severity, alerts a developer immediately (P1), with a lower-urgency message (P2), or silently (P3, dashboard only).",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "incidents",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "alert_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

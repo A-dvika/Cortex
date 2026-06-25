@@ -1,190 +1,68 @@
-# Bug Triage & Release Operator
+# Bug Triage & Release Operator — Gappy AI Hackathon
 
-An AI-powered system that automatically triages GitHub issues, assigns severity, suggests fixes, and generates release notes using Lemma SDK.
+An AI **agentic app** built on the **Lemma SDK**: it turns a messy bug report
+into a triaged, severity-scored, fix-suggested issue, and compiles release notes
+from what's been triaged.
 
-## 🎯 Problem
+> The actual product is the importable Lemma pod bundle in
+> **[`cortex-triage/`](cortex-triage/)**. Start with its
+> [README](cortex-triage/README.md).
 
-Engineering teams waste 3-5 hours/week manually triaging bugs:
-- Reading each issue description
-- Assigning severity levels
-- Finding duplicates
-- Writing release notes
+## Problem
+Engineering teams burn hours triaging bugs by hand — reading each report,
+guessing severity inconsistently, hunting duplicates, and writing release notes.
 
-## ✨ Solution
-
-**Bug Triage Operator** automates the entire process:
-1. New GitHub issue arrives
-2. AI Analyzer reads and classifies the bug
-3. Severity Scorer assesses impact
-4. Fix Suggester recommends solutions
-5. Release Notes Generator creates summaries
-6. Team notified with priority and fix suggestion
-
-## 📊 Demo
-
-- **Input:** GitHub issue (messy description, no priority)
-- **Output:** Triaged (P1/P2/P3), severity assessed, fix suggested, linked to similar issues
-- **Time:** 2 minutes (vs 30 minutes manual)
-- **Accuracy:** 92% severity classification, 87% fix suggestion accuracy
-
-## 🏗️ Architecture
-
+## Solution (the core loop)
 ```
-Pod: Bug Triage Operator
-├── Agents (4)
-│   ├── Bug Analyzer
-│   ├── Severity Scorer
-│   ├── Fix Suggester
-│   └── Release Notes Generator
-├── Tables (4)
-│   ├── Issues
-│   ├── Bugs
-│   ├── Fixes Suggested
-│   └── Release Notes
-├── Files (Knowledge Base)
-│   ├── Common Patterns
-│   ├── Code Context
-│   └── Templates
-├── Workflow (Main)
-│   └── Issue → Analyze → Score → Suggest → Release
-├── Connectors (2)
-│   ├── GitHub (webhook, labels, PRs)
-│   └── Slack (notifications)
-└── App (Dashboard)
-    └── Triage status, metrics, fix suggestions
+report ──> triage-agent ──> fix-suggester ──> persist_triage ──> tables
+            (classify +       (draft fix:        (deterministic     issues/
+             score P1/P2/P3)   code, risk,        write)            bugs/fixes
+                               effort)
+                                                  compile-release-notes
+                                                  ──> release-notes-writer ──> release_notes
 ```
+Agents do judgment; a Python function does deterministic persistence; workflows
+orchestrate. That's Lemma's intended "agents for judgment, functions for rules."
 
-## 📁 Project Structure
+## What's built (verified against Lemma 0.5.0)
+- **4 tables**: `issues`, `bugs` (FK→issues), `fixes` (FK→bugs), `release_notes`
+- **3 agents**: `triage-agent`, `fix-suggester`, `release-notes-writer` (with
+  structured `output_schema` and least-privilege permission grants)
+- **1 function**: `persist_triage` (Python, `Pod.from_env()`)
+- **2 workflows**: `triage-issue`, `compile-release-notes`
 
-```
-bug-triage-operator/
-├── README.md                          (this file)
-├── PROJECT_SPEC.md                    (detailed specification)
-├── ARCHITECTURE.md                    (technical architecture)
-├── IMPLEMENTATION_GUIDE.md            (step-by-step build guide)
-│
-├── pod/
-│   ├── pod-config.yaml               (Lemma pod configuration)
-│   ├── tables/
-│   │   ├── issues-table.yaml
-│   │   ├── bugs-table.yaml
-│   │   ├── fixes-table.yaml
-│   │   └── release-notes-table.yaml
-│   │
-│   ├── agents/
-│   │   ├── bug-analyzer.yaml
-│   │   ├── severity-scorer.yaml
-│   │   ├── fix-suggester.yaml
-│   │   └── release-notes-generator.yaml
-│   │
-│   ├── files/
-│   │   ├── common-patterns.md
-│   │   ├── architecture.md
-│   │   ├── severity-rules.md
-│   │   └── fix-templates.md
-│   │
-│   ├── workflow/
-│   │   └── bug-triage-workflow.yaml
-│   │
-│   ├── connectors/
-│   │   ├── github-connector.yaml
-│   │   └── slack-connector.yaml
-│   │
-│   └── app/
-│       ├── app-config.yaml
-│       └── dashboard-ui.tsx
-│
-├── mock/
-│   ├── github-webhook-simulator.js
-│   ├── demo-issues.json
-│   └── demo-scenario.sh
-│
-├── docs/
-│   ├── LEMMA_GUIDE.md                 (Lemma SDK notes)
-│   ├── BUILD_LOG.md                   (daily build progress)
-│   └── BLOG_OUTLINE.md                (blog post outline)
-│
-└── .gitignore
-```
+All 11 bundle JSON files validate; structure matches the CLI's `pod import`
+contract; the CLI runs to the auth boundary (see Windows note below).
 
-## 🚀 Quick Start
+## Toolchain (real, installed)
+| Piece | Command |
+|---|---|
+| CLI | `uv tool install lemma-terminal` → `lemma` |
+| App/UI SDK | `npm install lemma-sdk` (TypeScript/React hooks) |
+| Backend SDK | `lemma-python` (used inside functions) |
+| Local platform | `install.sh` Docker stack (app :3711, api :8711) |
 
-### Prerequisites
-- Lemma SDK (just launched June 24)
-- Claude API key (for agents)
-- GitHub token (for integration)
-- Slack workspace (optional, for notifications)
+## ⚠️ Windows note
+The Lemma CLI imports `termios` (Unix-only) and **crashes on native Windows**.
+Use **WSL/Ubuntu** (present on this machine) for real work, or the
+[`scripts/winshim/`](scripts/winshim/) shim for offline `--dry-run` validation.
 
-### Setup
+## Deploy (summary — full steps in the bundle README)
 ```bash
-# 1. Install Lemma CLI
-npm install -g lemma
-
-# 2. Create pod
-lemma pod create bug-triage-operator
-
-# 3. Create tables
-cd pod/tables
-lemma table create --payload-file issues-table.yaml
-lemma table create --payload-file bugs-table.yaml
-# ... create other tables
-
-# 4. Deploy agents
-cd ../agents
-lemma agent create --payload-file bug-analyzer.yaml
-# ... deploy other agents
-
-# 5. Wire workflow
-cd ../workflow
-lemma workflow create --payload-file bug-triage-workflow.yaml
-
-# 6. Setup GitHub webhook
-# (Instructions in IMPLEMENTATION_GUIDE.md)
-
-# 7. Run demo
-bash ../mock/demo-scenario.sh
+lemma auth login
+lemma pod create cortex-triage --org <ORG_UUID>
+lemma pods import ./cortex-triage --pod <POD_ID> --dry-run
+lemma pods import ./cortex-triage --pod <POD_ID>
+lemma workflow run triage-issue --pod <POD_ID> -d '{"title":"Checkout 500s for all users","source":"manual"}' --wait
 ```
+Full, annotated steps: [docs/08-deploy-run-debug.md](docs/08-deploy-run-debug.md).
 
-## 📈 Key Metrics
-
-| Metric | Current | Goal |
-|--------|---------|------|
-| Issue triage time | 2 min | < 3 min |
-| Severity accuracy | 92% | > 95% |
-| Fix suggestion accuracy | 87% | > 90% |
-| Release notes generation | < 1 min | < 2 min |
-| False P1 rate | 8% | < 5% |
-
-## 🎓 Build Timeline
-
-- **June 24**: Project setup, POD creation ✓
-- **June 25**: Agents implementation
-- **June 26**: Workflow wiring & connectors
-- **June 27**: App & dashboard
-- **June 28**: Mock infrastructure & testing
-- **June 29**: Demo & refinement
-- **June 30**: Final submission
-
-## 🔗 Resources
-
-- [Lemma Docs](https://lemma.work/docs)
-- [GitHub API](https://docs.github.com/en/rest)
-- [Lemma Discord](https://discord.gg/6dVR7zTvy)
-
-## 📝 Blog Posts to Write
-
-1. "I Built an AI Bug Triage System in 6 Days - Here's What I Learned"
-2. "Building with Lemma SDK: A First Look"
-3. "From 30 Minutes to 2 Minutes: Automating Bug Triage with AI"
-4. "Why Bug Triage is the Perfect AI Use Case"
-
-## 👨‍💻 Author
-
-Building for: Gappy AI Hackathon 2026
-Build window: June 24-30
-Submission: June 30, 2026
+## Docs in this repo
+- **[docs/](docs/)** — a guided, teaching-style tour of the whole implementation (start at [docs/README.md](docs/README.md))
+- [cortex-triage/README.md](cortex-triage/README.md) — deploy + run + demo
+- [cortex-triage/AGENTS.md](cortex-triage/AGENTS.md) — how the bundle is structured
+- [PROJECT_SPEC.md](PROJECT_SPEC.md) — product vision & judging fit (conceptual)
+- [scripts/winshim/](scripts/winshim/) — Windows CLI workaround
 
 ---
-
-**Status:** 🟢 Building
-**Last Updated:** June 24, 2026
+Build window: June 24–30, 2026 · Submission: June 30 · Status: 🟢 **deployed to Lemma cloud (pod `cortex-triage`); triage loop verified end-to-end** (release-notes workflow needs hardening)

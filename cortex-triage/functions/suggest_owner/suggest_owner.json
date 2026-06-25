@@ -1,0 +1,15 @@
+{
+  "name": "suggest_owner",
+  "description": "Looks at the GitHub repo (recent commits touching the implicated file + CODEOWNERS) to suggest who should own a bug, and records the likely breaking commit. Read-only on GitHub; writes the suggestion to the bug row.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "issues",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "github_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "compile-release-notes",
+  "description": "Compile release notes for a version from the triaged bugs and their fixes.",
+  "start": { "type": "MANUAL" },
+  "nodes": [
+    { "id": "intake", "type": "FORM", "label": "Release version",
+      "config": { "input_schema": {
+        "type": "object",
+        "properties": {
+          "version": { "type": "string", "title": "Version", "default": "v0.1.0" }
+        },
+        "required": ["version"]
+      } } },
+
+    { "id": "compile", "type": "AGENT", "label": "Draft release notes",
+      "config": { "agent_name": "release-notes-writer",
+        "input_mapping": {
+          "version": { "type": "expression", "value": "intake.version" }
+        } } },
+
+    { "id": "end", "type": "END", "label": "Notes drafted" }
+  ],
+  "edges": [
+    { "id": "e1", "source": "intake", "target": "compile" },
+    { "id": "e2", "source": "compile", "target": "end" }
+  ],
+  "visibility": "POD"
+}

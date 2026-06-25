@@ -1,0 +1,5 @@
+{
+  "format_version": 2,
+  "name": "cortex-triage",
+  "description": "Cortex-Triage: turns messy bug reports into triaged, severity-scored, fix-suggested issues and compiles release notes."
+}

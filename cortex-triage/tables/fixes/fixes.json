@@ -1,0 +1,19 @@
+{
+  "name": "fixes",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "visibility": "POD",
+  "columns": [
+    { "name": "bug_id", "type": "UUID", "required": true,
+      "foreign_key": { "references": "bugs.id" } },
+    { "name": "title", "type": "TEXT", "required": true, "max_length": 300 },
+    { "name": "suggestion", "type": "TEXT" },
+    { "name": "code_snippet", "type": "TEXT" },
+    { "name": "risk_level", "type": "ENUM", "required": true, "default": "medium",
+      "options": ["low", "medium", "high"] },
+    { "name": "estimated_effort", "type": "ENUM", "required": true, "default": "small",
+      "options": ["trivial", "small", "medium", "large"] },
+    { "name": "confidence", "type": "FLOAT", "default": 0 }
+  ],
+  "config": {}
+}

@@ -1,0 +1,8 @@
+{
+  "name": "escalate-incidents",
+  "schedule_type": "TIME",
+  "config": { "cron": "*/5 * * * *" },
+  "workflow_name": "escalate-incidents",
+  "is_active": true,
+  "visibility": "POD"
+}

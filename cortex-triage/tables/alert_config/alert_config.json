@@ -1,0 +1,13 @@
+{
+  "name": "alert_config",
+  "primary_key_column": "id",
+  "enable_rls": true,
+  "visibility": "PERSONAL",
+  "columns": [
+    { "name": "slack_webhook_url", "type": "TEXT", "max_length": 600 },
+    { "name": "escalation_webhook_url", "type": "TEXT", "max_length": 600 },
+    { "name": "escalation_minutes", "type": "INTEGER", "default": 15 },
+    { "name": "label", "type": "TEXT", "max_length": 120, "default": "default" }
+  ],
+  "config": {}
+}

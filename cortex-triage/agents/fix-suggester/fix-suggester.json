@@ -1,0 +1,29 @@
+{
+  "name": "fix-suggester",
+  "description": "Proposes a concrete first-pass fix for a triaged bug: what to do, a code sketch, risk level, and effort estimate.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "visibility": "POD",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "title": { "type": "string" },
+      "body": { "type": "string" },
+      "bug_type": { "type": "string" }
+    },
+    "required": ["title"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "fix_title": { "type": "string" },
+      "fix_suggestion": { "type": "string" },
+      "fix_code": { "type": "string" },
+      "risk_level": { "type": "string", "enum": ["low", "medium", "high"] },
+      "estimated_effort": { "type": "string", "enum": ["trivial", "small", "medium", "large"] },
+      "fix_confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+    },
+    "required": ["fix_title", "fix_suggestion", "risk_level", "estimated_effort", "fix_confidence"]
+  },
+  "permissions": { "grants": [] }
+}

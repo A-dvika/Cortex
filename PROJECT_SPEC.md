@@ -1,5 +1,11 @@
 # Bug Triage & Release Operator - Project Specification
 
+> ℹ️ **Note:** This is the product *vision/spec*. Any YAML snippets below were
+> written before the Lemma SDK was inspected and are **illustrative only**. The
+> authoritative, working resource definitions live in
+> [`cortex-triage/`](cortex-triage/) (real JSON bundle), and the
+> verified build/deploy steps are in [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md).
+
 ## Executive Summary
 
 **Product:** AI-powered GitHub issue triage system using Lemma SDK

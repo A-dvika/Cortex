@@ -1,0 +1,14 @@
+{
+  "name": "release_notes",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "visibility": "POD",
+  "columns": [
+    { "name": "version", "type": "TEXT", "required": true, "max_length": 60 },
+    { "name": "notes_markdown", "type": "TEXT" },
+    { "name": "highlights", "type": "JSON" },
+    { "name": "breaking_changes", "type": "JSON" },
+    { "name": "bug_count", "type": "INTEGER", "default": 0 }
+  ],
+  "config": {}
+}

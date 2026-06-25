@@ -10,7 +10,23 @@
       "Bash(git --version)",
       "Bash(python -m pip install --quiet --upgrade uv)",
       "Bash(python -m uv --version)",
-      "Bash(python -m uv tool install lemma-terminal)"
+      "Bash(python -m uv tool install lemma-terminal)",
+      "Bash(PKG=\"/c/Users/HP/AppData/Roaming/uv/tools/lemma-terminal/Lib/site-packages/lemma_cli\" *)",
+      "Read(//c/Users/HP/AppData/Roaming/uv/tools/lemma-terminal/Lib/site-packages/lemma_cli/**)",
+      "Bash(mkdir -p /c/Users/HP/AppData/Local/Temp/claude/c--Users-HP-Documents-gappyai/92b8af98-a6de-430a-b887-fc277695c330/scratchpad/winshim)",
+      "Bash(wsl --status)",
+      "Read(//c/Users/HP/.claude/projects/c--Users-HP/memory/**)",
+      "Bash(echo \"=== any .lemma or lemma config anywhere under HP home? ===\" *)",
+      "Read(//c/Users/HP/**)",
+      "Bash(git mv *)",
+      "Bash(curl -s -o /tmp/cortexapp.html -w \"%{http_code}\" --max-time 20 -L https://cortex-board.apps.lemma.work)",
+      "Read(//tmp/**)",
+      "Bash(python -)",
+      "Bash(grep -nE '#[0-9a-fA-F]{3,8}\\\\b' cortex-triage/apps/cortex-board/html.html)",
+      "Bash(python -c ' *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\HP\\.claude\\projects\\c--Users-HP\\memory"
     ]
   }
 }

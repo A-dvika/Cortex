@@ -1,0 +1,14 @@
+{
+  "name": "escalate-incidents",
+  "description": "Sweeps open P1 incidents and pages the escalation channel for anything still unacked past alert_config.escalation_minutes. Driven by the escalate-incidents TIME schedule (every 5 min) — see schedules/escalate-incidents.",
+  "start": { "type": "MANUAL" },
+  "nodes": [
+    { "id": "escalate", "type": "FUNCTION", "label": "Escalate stale P1s",
+      "config": { "function_name": "escalate_incidents", "input_mapping": {} } },
+    { "id": "end", "type": "END", "label": "Done" }
+  ],
+  "edges": [
+    { "id": "e1", "source": "escalate", "target": "end" }
+  ],
+  "visibility": "POD"
+}

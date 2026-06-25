@@ -1,0 +1,8 @@
+{
+  "name": "github_ping",
+  "description": "Connectivity probe — confirms a function can reach api.github.com (outbound HTTP).",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [] }
+}

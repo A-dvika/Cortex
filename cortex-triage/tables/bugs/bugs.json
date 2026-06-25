@@ -1,0 +1,31 @@
+{
+  "name": "bugs",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "visibility": "POD",
+  "columns": [
+    { "name": "issue_id", "type": "UUID", "required": true,
+      "foreign_key": { "references": "issues.id" } },
+    { "name": "title", "type": "TEXT", "required": true, "max_length": 300 },
+    { "name": "bug_type", "type": "ENUM", "required": true, "default": "other",
+      "options": ["crash", "performance", "ui", "data", "auth", "docs", "other"] },
+    { "name": "severity", "type": "ENUM", "required": true, "default": "P3",
+      "options": ["P1", "P2", "P3"] },
+    { "name": "impact_score", "type": "INTEGER", "default": 0 },
+    { "name": "urgency_score", "type": "INTEGER", "default": 0 },
+    { "name": "confidence", "type": "FLOAT", "default": 0 },
+    { "name": "is_duplicate", "type": "BOOLEAN", "default": false },
+    { "name": "duplicate_of", "type": "TEXT", "max_length": 300 },
+    { "name": "reasoning", "type": "TEXT" },
+    { "name": "assignee_login", "type": "TEXT", "max_length": 120 },
+    { "name": "assignee_reason", "type": "TEXT" },
+    { "name": "breaking_commit", "type": "TEXT", "max_length": 60 },
+    { "name": "breaking_commit_url", "type": "TEXT", "max_length": 600 },
+    { "name": "assign_status", "type": "ENUM", "required": true, "default": "none",
+      "options": ["none", "suggested", "assigned"] },
+    { "name": "fix_pr_url", "type": "TEXT", "max_length": 600 },
+    { "name": "fix_pr_status", "type": "ENUM", "required": true, "default": "none",
+      "options": ["none", "ineligible", "opened", "failed"] }
+  ],
+  "config": {}
+}

@@ -1,0 +1,11 @@
+{
+  "name": "resolve_incident",
+  "description": "Closes an incident once the underlying bug is actually fixed, optionally appending a resolution note.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "incidents",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] }
+  ] }
+}

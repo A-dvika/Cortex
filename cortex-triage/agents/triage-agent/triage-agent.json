@@ -1,0 +1,30 @@
+{
+  "name": "triage-agent",
+  "description": "Classifies an incoming bug report, scores impact and urgency, and assigns a P1/P2/P3 severity with reasoning.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "visibility": "POD",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "title": { "type": "string" },
+      "body": { "type": "string" }
+    },
+    "required": ["title"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "bug_type": { "type": "string", "enum": ["crash", "performance", "ui", "data", "auth", "docs", "other"] },
+      "severity": { "type": "string", "enum": ["P1", "P2", "P3"] },
+      "impact_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+      "urgency_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+      "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+      "is_duplicate": { "type": "boolean" },
+      "duplicate_of": { "type": "string" },
+      "reasoning": { "type": "string" }
+    },
+    "required": ["bug_type", "severity", "impact_score", "urgency_score", "confidence", "reasoning"]
+  },
+  "permissions": { "grants": [] }
+}

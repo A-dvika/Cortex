@@ -1,0 +1,6 @@
+{
+  "name": "cortex-board",
+  "description": "Cortex-Triage operator board — live bug triage queue grouped by severity, with one-click triage and release notes.",
+  "public_slug": "cortex-board",
+  "visibility": "POD"
+}

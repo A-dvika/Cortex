@@ -1,0 +1,22 @@
+{
+  "name": "release-notes-writer",
+  "description": "Reads triaged bugs and their fixes from the pod and drafts a release-notes row for a given version.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "visibility": "POD",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "version": { "type": "string" }
+    },
+    "required": ["version"]
+  },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "fixes",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "release_notes",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] }
+  ] }
+}

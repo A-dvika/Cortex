@@ -1,0 +1,11 @@
+{
+  "name": "ack_incident",
+  "description": "Marks an incident as acknowledged by a developer, stopping further escalation alerts.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "incidents",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] }
+  ] }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "assign_owner",
+  "description": "On human approval, assigns the GitHub issue to the suggested owner and posts a triage summary comment (severity, type, suggested fix, why this owner). Requires a stored PAT with repo write.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "issues",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "fixes",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "github_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

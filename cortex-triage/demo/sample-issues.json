@@ -1,0 +1,40 @@
+[
+  {
+    "title": "Checkout returns 500 for all users after 14:00 deploy",
+    "body": "Every payment attempt fails with HTTP 500 since the 14:00 deploy. No workaround. Customers cannot pay.",
+    "source": "github",
+    "external_id": "1421",
+    "url": "https://github.com/acme/store/issues/1421",
+    "reporter": "on-call",
+    "expected_severity": "P1"
+  },
+  {
+    "title": "Dashboard takes 12s to load for accounts with >10k orders",
+    "body": "Large accounts report the orders dashboard hangs ~12s. Smaller accounts are fine. Likely an N+1 query.",
+    "source": "slack",
+    "reporter": "support",
+    "expected_severity": "P2"
+  },
+  {
+    "title": "Login fails with 401 right after password reset",
+    "body": "After resetting a password, the first login attempt returns 401; a second attempt works. Token not refreshed?",
+    "source": "email",
+    "reporter": "customer@bigco.com",
+    "expected_severity": "P2"
+  },
+  {
+    "title": "Export CSV drops the last row for odd-numbered result sets",
+    "body": "When the result count is odd, the exported CSV is missing the final row. Data integrity issue on reports.",
+    "source": "github",
+    "external_id": "1390",
+    "reporter": "analyst",
+    "expected_severity": "P2"
+  },
+  {
+    "title": "Typo: 'Recieve notifications' in settings page",
+    "body": "The settings toggle label reads 'Recieve notifications' — should be 'Receive'.",
+    "source": "slack",
+    "reporter": "designer",
+    "expected_severity": "P3"
+  }
+]

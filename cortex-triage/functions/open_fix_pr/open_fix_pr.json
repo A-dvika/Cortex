@@ -1,0 +1,17 @@
+{
+  "name": "open_fix_pr",
+  "description": "Auto-resolves eligible (low-risk, high-confidence) bugs by opening a GitHub PR with the suggested fix on a new branch, and requests review from whoever suggest_owner identified. Everything else is left for manual review (assign_owner).",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "issues",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "fixes",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "github_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

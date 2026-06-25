@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cortex-Triage — Operator Board</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --bg-2: #fffdfa;
+      --surface: #ffffff;
+      --surface-2: #f3ecdf;
+      --border: #e9e0cd;
+      --border-strong: #ddccaa;
+      --text: #2b2722;
+      --text-2: #756c5c;
+      --muted: #a59a83;
+      --accent: #0a78e6;
+      --accent-2: #3aa6ff;
+      --accent-soft: rgba(10,120,230,0.08);
+      --p1: #c0432c; --p1-soft: rgba(192,67,44,0.10);
+      --p2: #b07c1f; --p2-soft: rgba(176,124,31,0.12);
+      --p3: #847a66; --p3-soft: rgba(132,122,102,0.14);
+      --green: #2f8f5b; --green-soft: rgba(47,143,91,0.12);
+      --radius: 16px; --radius-sm: 12px;
+      --shadow: 0 14px 32px rgba(80,64,32,0.10);
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background:
+        radial-gradient(1200px 700px at 15% -10%, rgba(255,255,255,0.85), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(10,120,230,0.05), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+    button { font: inherit; cursor: pointer; }
+    ::-webkit-scrollbar { height: 10px; width: 10px; }
+    ::-webkit-scrollbar-thumb { background: #ddccaa; border-radius: 20px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    /* ---------- shell ---------- */
+    .app { min-height: 100%; display: flex; flex-direction: column; }
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 22px;
+      background: rgba(255,253,250,0.78); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 38px; height: 38px; border-radius: 11px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid; place-items: center; color: #ffffff; font-weight: 800; font-size: 18px;
+      box-shadow: 0 6px 18px rgba(10,120,230,0.30);
+    }
+    .brand h1 { margin: 0; font-size: 16px; letter-spacing: 0.2px; }
+    .brand p { margin: 1px 0 0; font-size: 12px; color: var(--muted); }
+    .spacer { flex: 1; }
+    .who { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border-strong);
+      background: var(--surface-2); color: var(--text); font-size: 13.5px; font-weight: 600;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+    }
+    .btn:hover { background: #ece2cc; border-color: #cdb98e; }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: #ffffff; box-shadow: 0 6px 16px rgba(10,120,230,0.25); }
+    .btn.primary:hover { filter: brightness(1.06); }
+    .btn.ghost { background: transparent; }
+    .btn[disabled] { opacity: .55; cursor: not-allowed; }
+
+    /* ---------- metrics ---------- */
+    .metrics { display: flex; gap: 12px; padding: 18px 22px 4px; flex-wrap: wrap; }
+    .metric {
+      flex: 1; min-width: 150px;
+      background: linear-gradient(180deg, var(--surface), var(--bg-2));
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; position: relative; overflow: hidden;
+    }
+    .metric .k { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+    .metric .v { font-size: 28px; font-weight: 750; margin-top: 6px; letter-spacing: -0.5px; }
+    .metric .bar { margin-left: auto; }
+    .pill { display: inline-flex; align-items:center; gap:6px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
+    .pill.p1 { color: var(--p1); background: var(--p1-soft); }
+    .pill.p2 { color: var(--p2); background: var(--p2-soft); }
+    .pill.p3 { color: var(--p3); background: var(--p3-soft); }
+    .swatch { width: 9px; height: 9px; border-radius: 3px; }
+
+    /* ---------- toolbar ---------- */
+    .toolbar { display: flex; align-items: center; gap: 10px; padding: 16px 22px 8px; flex-wrap: wrap; }
+    .search {
+      display: flex; align-items: center; gap: 8px; flex: 1; min-width: 220px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px;
+    }
+    .search input { background: transparent; border: none; outline: none; color: var(--text); width: 100%; font-size: 14px; }
+    .chips { display: flex; gap: 7px; }
+    .chip {
+      padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-strong);
+      background: var(--surface-2); color: var(--text-2); font-size: 12.5px; font-weight: 600;
+    }
+    .chip.active { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+
+    /* ---------- board ---------- */
+    .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 12px 22px 40px; align-items: start; }
+    .col { background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent); border: 1px solid var(--border); border-radius: var(--radius); min-height: 160px; }
+    .col-head { display: flex; align-items: center; gap: 10px; padding: 13px 15px; border-bottom: 1px solid var(--border); position: sticky; top: 70px; background: var(--bg-2); backdrop-filter: blur(6px); border-radius: var(--radius) var(--radius) 0 0; z-index: 5; }
+    .col-head .name { font-weight: 750; font-size: 13.5px; letter-spacing: .3px; }
+    .col-head .count { margin-left: auto; font-size: 12px; color: var(--muted); }
+    .col-accent { width: 4px; height: 16px; border-radius: 3px; }
+    .col.p1 .col-accent { background: var(--p1); } .col.p2 .col-accent { background: var(--p2); } .col.p3 .col-accent { background: var(--p3); }
+    .col-body { padding: 12px; display: flex; flex-direction: column; gap: 11px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border-strong);
+      border-radius: var(--radius-sm); padding: 13px 14px; transition: transform .1s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--border-strong); }
+    .card.p1 { border-left-color: var(--p1); } .card.p2 { border-left-color: var(--p2); } .card.p3 { border-left-color: var(--p3); }
+    .card.flash { animation: flash 1.6s ease; }
+    @keyframes flash { 0% { box-shadow: 0 0 0 2px var(--accent), var(--shadow); } 100% { box-shadow: none; } }
+    .card .title { font-weight: 650; font-size: 14px; line-height: 1.35; }
+    .card .meta { display: flex; align-items: center; gap: 7px; margin-top: 9px; flex-wrap: wrap; }
+    .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); text-transform: capitalize; }
+    .tag.type { color: var(--accent); border-color: rgba(10,120,230,0.25); background: var(--accent-soft); }
+    .tag.risk-high { color: var(--p1); background: var(--p1-soft); border-color: transparent; }
+    .tag.risk-medium { color: var(--p2); background: var(--p2-soft); border-color: transparent; }
+    .tag.risk-low { color: var(--green); background: var(--green-soft); border-color: transparent; }
+    .scores { display: flex; gap: 12px; margin-top: 11px; }
+    .score { flex: 1; }
+    .score .lab { font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
+    .track { height: 6px; border-radius: 999px; background: var(--surface-2); margin-top: 4px; overflow: hidden; }
+    .track > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+    .card details { margin-top: 11px; }
+    .card summary { cursor: pointer; font-size: 12px; color: var(--text-2); list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
+    .card summary::-webkit-details-marker { display: none; }
+    .card summary::before { content: "▸"; color: var(--muted); transition: transform .15s; }
+    .card details[open] summary::before { transform: rotate(90deg); }
+    .reason { font-size: 12.5px; color: var(--text-2); line-height: 1.5; margin: 9px 0 0; }
+    .fix { margin-top: 10px; padding: 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; }
+    .fix .fx-title { font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+    .fix .fx-body { font-size: 12.5px; color: var(--text-2); margin-top: 6px; line-height: 1.5; }
+    pre { margin: 9px 0 0; padding: 10px; background: #faf6ec; border: 1px solid var(--border); border-radius: 9px; overflow: auto; font-size: 11.5px; color: #44392a; max-height: 230px; }
+    .dup { font-size: 11px; color: var(--p2); margin-top: 8px; }
+    .src { font-size: 11px; color: var(--muted); margin-top: 8px; }
+    .src a { color: var(--accent); text-decoration: none; }
+
+    /* ---------- skeleton / empty ---------- */
+    .skel { height: 92px; border-radius: var(--radius-sm); background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 37%, var(--surface) 63%); background-size: 400% 100%; animation: shimmer 1.3s infinite; }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+    .empty { text-align: center; color: var(--muted); font-size: 13px; padding: 26px 10px; }
+
+    /* ---------- modal / drawer ---------- */
+    .scrim { position: fixed; inset: 0; background: rgba(43,38,28,0.32); backdrop-filter: blur(4px); z-index: 50; display: grid; place-items: center; padding: 20px; }
+    .modal { width: 100%; max-width: 520px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+    .modal h2 { margin: 0; font-size: 16px; }
+    .modal .head { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .modal .body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .modal .foot { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+    .field label { font-size: 12px; color: var(--text-2); font-weight: 600; display: block; margin-bottom: 6px; }
+    .field input, .field textarea, .field select {
+      width: 100%; background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--text);
+      border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; resize: vertical;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .drawer { position: fixed; top: 0; right: 0; height: 100%; width: min(460px, 92vw); background: var(--bg-2); border-left: 1px solid var(--border-strong); box-shadow: var(--shadow); z-index: 55; display: flex; flex-direction: column; animation: slidein .2s ease; }
+    @keyframes slidein { from { transform: translateX(20px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+    /* ---------- stepper ---------- */
+    .steps { display: flex; flex-direction: column; gap: 10px; }
+    .step { display: flex; align-items: center; gap: 11px; font-size: 13px; color: var(--muted); }
+    .step .ic { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-strong); display: grid; place-items: center; font-size: 12px; flex: none; }
+    .step.active { color: var(--text); }
+    .step.active .ic { border-color: var(--accent); color: var(--accent); animation: pulse 1s infinite; }
+    .step.done { color: var(--text-2); }
+    .step.done .ic { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--accent-soft); } 50% { box-shadow: 0 0 0 6px transparent; } }
+
+    /* ---------- toasts ---------- */
+    .toasts { position: fixed; right: 18px; bottom: 18px; z-index: 70; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: var(--surface-2); border: 1px solid var(--border-strong); border-left: 3px solid var(--accent); padding: 12px 14px; border-radius: 10px; font-size: 13px; box-shadow: var(--shadow); max-width: 340px; animation: slidein .2s ease; }
+    .toast.ok { border-left-color: var(--green); } .toast.err { border-left-color: var(--p1); }
+
+    .center { min-height: 70vh; display: grid; place-items: center; text-align: center; }
+    .spin { width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--border-strong); border-top-color: var(--accent); animation: rot .8s linear infinite; margin: 0 auto 14px; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    .md { font-size: 13px; color: var(--text-2); line-height: 1.6; white-space: pre-wrap; }
+
+    @media (max-width: 900px) { .board { grid-template-columns: 1fr; } .col-head { position: static; } }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="center"><div><div class="spin"></div><div style="color:var(--muted);font-size:13px">Connecting to Cortex…</div></div></div>
+  </div>
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+  (function () {
+    var cfg = window.__LEMMA_CONFIG__ || {};
+    var base = (cfg.apiUrl || window.location.origin).replace(/\/$/, "");
+    var s = document.createElement("script");
+    s.src = base + "/public/sdk/lemma-client.js";
+    s.onload = boot;
+    s.onerror = function () { fatal("Could not load the Lemma SDK from " + base + "/public/sdk/lemma-client.js"); };
+    document.head.appendChild(s);
+  })();
+
+  // ---------- tiny helpers ----------
+  var $ = function (sel, root) { return (root || document).querySelector(sel); };
+  function h(html) { var t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); }
+  function fatal(msg) { $("#root").innerHTML = '<div class="center"><div><div style="font-size:15px;margin-bottom:8px">⚠️ ' + esc(msg) + '</div><div style="color:var(--muted);font-size:13px">Open this app from inside the Lemma pod so it receives its config + session.</div></div></div>'; }
+  function toast(msg, kind) {
+    var t = h('<div class="toast ' + (kind || "") + '">' + esc(msg) + '</div>');
+    $("#toasts").appendChild(t);
+    setTimeout(function () { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(function () { t.remove(); }, 300); }, kind === "err" ? 6000 : 3800);
+  }
+  function items(res) { return (res && res.items) ? res.items : (Array.isArray(res) ? res : []); }
+  var SEV = { P1: { name: "P1 · Critical", cls: "p1" }, P2: { name: "P2 · High", cls: "p2" }, P3: { name: "P3 · Low", cls: "p3" } };
+  function sevOf(b) { return (b.severity === "P1" || b.severity === "P2") ? b.severity : "P3"; }
+
+  // ---------- state ----------
+  var client = null;
+  var S = { user: null, bugs: [], fixByBug: {}, issueById: {}, incidentByBug: {}, notes: [], cfg: null, filter: "all", q: "", loading: true, newest: null };
+
+  async function boot() {
+    try {
+      client = new window.LemmaClient.LemmaClient();
+      var st = await client.initialize();
+      if (!st || st.status !== "authenticated") { client.auth.redirectToAuth(); return; }
+      S.user = st.user || null;
+      await loadAll();
+      render();
+    } catch (e) { fatal((e && e.message) ? e.message : String(e)); }
+  }
+
+  async function loadAll() {
+    S.loading = true; render();
+    var bugs = [], fixes = [], issues = [], notes = [];
+    try {
+      var res = await Promise.all([
+        client.records.list("bugs", { limit: 300 }),
+        client.records.list("fixes", { limit: 500 }),
+        client.records.list("issues", { limit: 500 }),
+        client.records.list("release_notes", { limit: 50 }),
+        client.records.list("incidents", { limit: 300 })
+      ]);
+      bugs = items(res[0]); fixes = items(res[1]); issues = items(res[2]); notes = items(res[3]);
+      var incidents = items(res[4]);
+      S.incidentByBug = {};
+      incidents.forEach(function (inc) { if (inc.bug_id && !S.incidentByBug[inc.bug_id]) S.incidentByBug[inc.bug_id] = inc; });
+    } catch (e) { toast("Load failed: " + (e.message || e), "err"); }
+    S.bugs = bugs.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
+    S.fixByBug = {}; fixes.forEach(function (f) { if (!S.fixByBug[f.bug_id]) S.fixByBug[f.bug_id] = f; });
+    S.issueById = {}; issues.forEach(function (i) { S.issueById[i.id] = i; });
+    S.notes = notes.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
+    try { var cf = items(await client.records.list("github_config", { limit: 1 })); S.cfg = cf[0] || null; } catch (e) { S.cfg = null; }
+    S.loading = false;
+  }
+
+  // ---------- render ----------
+  function metricsHtml() {
+    var c = { P1: 0, P2: 0, P3: 0 };
+    S.bugs.forEach(function (b) { c[sevOf(b)]++; });
+    var total = S.bugs.length;
+    var avg = total ? Math.round(100 * S.bugs.reduce(function (s, b) { return s + (Number(b.confidence) || 0); }, 0) / total) : 0;
+    function card(k, v, extra) { return '<div class="metric"><div class="k">' + k + '</div><div class="v">' + v + (extra || "") + '</div></div>'; }
+    return '<div class="metrics">' +
+      card('<span class="swatch" style="background:var(--accent)"></span> Open bugs', total) +
+      card('<span class="pill p1">P1</span> Critical', c.P1) +
+      card('<span class="pill p2">P2</span> High', c.P2) +
+      card('<span class="pill p3">P3</span> Low', c.P3) +
+      card('Avg confidence', avg + '<span style="font-size:15px;color:var(--muted)">%</span>') +
+      '</div>';
+  }
+
+  function cardHtml(b) {
+    var sev = sevOf(b), fix = S.fixByBug[b.id], iss = S.issueById[b.issue_id];
+    var imp = Math.max(0, Math.min(100, Number(b.impact_score) || 0));
+    var urg = Math.max(0, Math.min(100, Number(b.urgency_score) || 0));
+    var conf = Math.round((Number(b.confidence) || 0) * 100);
+    var html = '<div class="card ' + sev + (S.newest === b.id ? ' flash' : '') + '" data-id="' + esc(b.id) + '">';
+    html += '<div class="title">' + esc(b.title) + '</div>';
+    html += '<div class="meta"><span class="tag type">' + esc(b.bug_type || "other") + '</span>';
+    html += '<span class="tag">conf ' + conf + '%</span>';
+    if (b.is_duplicate) html += '<span class="tag" style="color:var(--p2)">duplicate</span>';
+    html += '</div>';
+    html += '<div class="scores"><div class="score"><div class="lab"><span>Impact</span><span class="mono">' + imp + '</span></div><div class="track"><span style="width:' + imp + '%"></span></div></div>' +
+            '<div class="score"><div class="lab"><span>Urgency</span><span class="mono">' + urg + '</span></div><div class="track"><span style="width:' + urg + '%"></span></div></div></div>';
+    if (iss && iss.url) html += '<div class="src">source: ' + esc(iss.source || "—") + ' · <a href="' + esc(iss.url) + '" target="_blank" rel="noopener">link ↗</a></div>';
+    else if (iss) html += '<div class="src">source: ' + esc(iss.source || "—") + (iss.reporter ? ' · ' + esc(iss.reporter) : '') + '</div>';
+    if (b.duplicate_of) html += '<div class="dup">↔ likely duplicate of: ' + esc(b.duplicate_of) + '</div>';
+
+    html += incidentHtml(b);
+    html += ownerHtml(b);
+    html += fixPrHtml(b);
+
+    var det = '';
+    if (b.reasoning) det += '<p class="reason"><strong style="color:var(--text-2)">Why ' + esc(b.severity) + ':</strong> ' + esc(b.reasoning) + '</p>';
+    if (fix) {
+      det += '<div class="fix"><div class="fx-title">🔧 ' + esc(fix.title || "Suggested fix") +
+        ' <span class="tag risk-' + esc(fix.risk_level || "medium") + '" style="margin-left:auto">' + esc(fix.risk_level || "medium") + ' risk</span>' +
+        ' <span class="tag">' + esc(fix.estimated_effort || "small") + '</span></div>';
+      if (fix.suggestion) det += '<div class="fx-body">' + esc(fix.suggestion) + '</div>';
+      if (fix.code_snippet) det += '<pre class="mono">' + esc(fix.code_snippet) + '</pre>';
+      det += '</div>';
+    }
+    if (det) html += '<details><summary>Reasoning &amp; suggested fix</summary>' + det + '</details>';
+    html += '</div>';
+    return html;
+  }
+
+  function columnHtml(sev) {
+    var meta = SEV[sev];
+    var list = S.bugs.filter(function (b) { return sevOf(b) === sev; }).filter(matchFilter);
+    var inner = '';
+    if (S.loading) inner = '<div class="skel"></div><div class="skel"></div>';
+    else if (!list.length) inner = '<div class="empty">No ' + sev + ' bugs</div>';
+    else inner = list.map(cardHtml).join("");
+    return '<div class="col ' + meta.cls + '"><div class="col-head"><span class="col-accent"></span><span class="name">' + meta.name + '</span><span class="count">' + list.length + '</span></div><div class="col-body">' + inner + '</div></div>';
+  }
+
+  function matchFilter(b) {
+    if (S.filter !== "all" && sevOf(b) !== S.filter) return false;
+    if (!S.q) return true;
+    var fix = S.fixByBug[b.id] || {};
+    var hay = (b.title + " " + (b.bug_type || "") + " " + (b.reasoning || "") + " " + (fix.suggestion || "")).toLowerCase();
+    return hay.indexOf(S.q.toLowerCase()) >= 0;
+  }
+
+  function render() {
+    var who = S.user ? (S.user.email || S.user.name || "your account") : "…";
+    var html = '<div class="app">';
+    html += '<div class="topbar"><div class="brand"><div class="logo">C</div><div><h1>Cortex-Triage</h1><p>Operator board</p></div></div>' +
+      '<div class="spacer"></div>' +
+      '<span class="who"><span class="dot"></span> ' + esc(who) + '</span>' +
+      '<button class="btn ghost" id="btnRepo">' + (S.cfg && S.cfg.repo ? '🔗 ' + esc(S.cfg.repo) : '🔗 Connect repo') + '</button>' +
+      '<button class="btn ghost" id="btnNotes">📝 Release notes</button>' +
+      '<button class="btn ghost" id="btnRefresh">↻ Refresh</button>' +
+      '<button class="btn primary" id="btnNew">＋ New report</button></div>';
+    html += metricsHtml();
+    html += '<div class="toolbar"><div class="search">🔎 <input id="q" placeholder="Search bugs, types, fixes…" value="' + esc(S.q) + '" /></div>' +
+      '<div class="chips">' + ["all", "P1", "P2", "P3"].map(function (f) {
+        return '<button class="chip ' + (S.filter === f ? "active" : "") + '" data-f="' + f + '">' + (f === "all" ? "All" : f) + '</button>';
+      }).join("") + '</div></div>';
+    html += '<div class="board">' + columnHtml("P1") + columnHtml("P2") + columnHtml("P3") + '</div>';
+    html += '</div>';
+    $("#root").innerHTML = html;
+
+    $("#btnNew").onclick = openNewReport;
+    $("#btnRefresh").onclick = function () { loadAll().then(render).then(function(){ toast("Refreshed"); }); };
+    $("#btnNotes").onclick = openNotes;
+    var q = $("#q"); q.oninput = function () { S.q = q.value; var pos = q.selectionStart; render(); var n = $("#q"); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} };
+    Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) { c.onclick = function () { S.filter = c.dataset.f; render(); }; });
+    $("#btnRepo").onclick = openSettings;
+    Array.prototype.forEach.call(document.querySelectorAll(".assign-btn"), function (b) { b.onclick = function () { approveAssign(b.dataset.bug, b); }; });
+    Array.prototype.forEach.call(document.querySelectorAll(".ack-btn"), function (b) { b.onclick = function () { ackIncident(b.dataset.inc, b); }; });
+    if (S.newest) setTimeout(function () { S.newest = null; }, 1800);
+  }
+
+  // ---------- New report → run triage-issue ----------
+  function openNewReport() {
+    var scrim = h('<div class="scrim"></div>');
+    scrim.innerHTML =
+      '<div class="modal"><div class="head"><h2>＋ New bug report</h2></div>' +
+      '<div class="body" id="mbody">' +
+      '<div class="field"><label>Title *</label><input id="f-title" placeholder="e.g. Checkout returns 500 for all users" /></div>' +
+      '<div class="field"><label>Description</label><textarea id="f-body" rows="4" placeholder="What happened, who is affected, since when…"></textarea></div>' +
+      '<div class="field"><label>Source</label><select id="f-source"><option value="manual">manual</option><option value="github">github</option><option value="slack">slack</option><option value="email">email</option></select></div>' +
+      '<div class="field"><label>GitHub issue # <span style="color:var(--muted)">(optional — enables auto-assign back to the repo)</span></label><input id="f-extid" class="mono" placeholder="e.g. 12" /></div>' +
+      '</div><div class="foot"><button class="btn ghost" id="m-cancel">Cancel</button><button class="btn primary" id="m-go">Triage it →</button></div></div>';
+    document.body.appendChild(scrim);
+    var close = function () { scrim.remove(); };
+    scrim.addEventListener("click", function (e) { if (e.target === scrim) close(); });
+    $("#m-cancel", scrim).onclick = close;
+    $("#f-title", scrim).focus();
+    $("#m-go", scrim).onclick = function () {
+      var title = $("#f-title", scrim).value.trim();
+      if (!title) { $("#f-title", scrim).focus(); toast("Title is required", "err"); return; }
+      runTriage(scrim, {
+        title: title,
+        body: $("#f-body", scrim).value.trim(),
+        source: $("#f-source", scrim).value,
+        url: "", reporter: S.user && S.user.email ? S.user.email : "", external_id: $("#f-extid", scrim).value.trim()
+      });
+    };
+  }
+
+  var STEP_LABELS = { intake: "Submitting report", triage: "Classifying & scoring severity", suggest: "Drafting a fix", persist: "Saving to the board", end: "Done" };
+  var STEP_ORDER = ["intake", "triage", "suggest", "persist", "end"];
+
+  function stepperHtml(active) {
+    return '<div class="steps">' + STEP_ORDER.map(function (id, i) {
+      var ai = STEP_ORDER.indexOf(active);
+      var cls = i < ai ? "done" : (i === ai ? "active" : "");
+      var ic = i < ai ? "✓" : (i + 1);
+      return '<div class="step ' + cls + '"><div class="ic">' + ic + '</div>' + STEP_LABELS[id] + '</div>';
+    }).join("") + '</div>';
+  }
+
+  async function runTriage(scrim, inputs) {
+    var body = $("#mbody", scrim), foot = scrim.querySelector(".foot");
+    foot.style.display = "none";
+    body.innerHTML = '<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Cortex is triaging your report…</div>' + stepperHtml("intake");
+    try {
+      var run = await client.workflows.runs.create("triage-issue");
+      var nodeId = (run.active_wait && run.active_wait.node_id) ? run.active_wait.node_id : "intake";
+      body.innerHTML = '<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Cortex is triaging your report…</div>' + stepperHtml("triage");
+      run = await client.workflows.runs.submitForm(run.id, { node_id: nodeId, inputs: inputs });
+      var terminal = { COMPLETED: 1, FAILED: 1, CANCELLED: 1, ERROR: 1 };
+      var tries = 0;
+      while (!terminal[(run.status || "").toUpperCase()] && tries < 90) {
+        await new Promise(function (r) { setTimeout(r, 2000); });
+        run = await client.workflows.runs.get(run.id);
+        var cur = run.current_node_id || "triage";
+        if (STEP_LABELS[cur]) body.innerHTML = '<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Cortex is triaging your report…</div>' + stepperHtml(cur);
+        tries++;
+      }
+      var status = (run.status || "").toUpperCase();
+      if (status === "COMPLETED") {
+        body.innerHTML = '<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Triaged ✓</div>' + stepperHtml("end");
+        await loadAll();
+        var newBug = S.bugs.find(function (b) { return b.title === inputs.title; });
+        if (newBug) S.newest = newBug.id;
+        setTimeout(function () { scrim.remove(); render(); toast("Triaged: " + (newBug ? newBug.severity + " · " + newBug.bug_type : "done"), "ok"); }, 650);
+      } else {
+        scrim.remove();
+        toast("Triage run " + status + (run.failed_node_id ? " at " + run.failed_node_id : "") + ". The agents may be busy — try again.", "err");
+      }
+    } catch (e) {
+      scrim.remove();
+      toast("Could not triage: " + (e.message || e), "err");
+    }
+  }
+
+  // ---------- Release notes drawer ----------
+  function openNotes() {
+    var scrim = h('<div class="scrim"></div>');
+    var d = h('<div class="drawer"></div>');
+    function paint() {
+      var list = S.notes.length ? S.notes.map(function (n) {
+        return '<div class="card" style="border-left-color:var(--accent)"><div class="title">' + esc(n.version || "untitled") + ' <span class="tag" style="margin-left:6px">' + (n.bug_count || 0) + ' bugs</span></div>' +
+          (n.notes_markdown ? '<div class="md" style="margin-top:10px">' + esc(n.notes_markdown) + '</div>' : '<div class="src" style="margin-top:8px">No notes content yet.</div>') + '</div>';
+      }).join("") : '<div class="empty">No release notes yet. Compile one below.</div>';
+      d.innerHTML =
+        '<div class="head" style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border)"><h2 style="margin:0;font-size:15px">📝 Release notes</h2><div class="spacer" style="flex:1"></div><button class="btn ghost" id="nClose">✕</button></div>' +
+        '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px"><input id="nVer" class="mono" placeholder="v0.3.0" style="flex:1;background:var(--bg-2);border:1px solid var(--border-strong);color:var(--text);border-radius:9px;padding:9px 11px;outline:none" /><button class="btn primary" id="nGo">Compile</button></div>' +
+        '<div style="padding:14px 16px;overflow:auto;display:flex;flex-direction:column;gap:11px">' + list + '</div>';
+      $("#nClose", d).onclick = function () { scrim.remove(); };
+      $("#nGo", d).onclick = function () { compileNotes(d, $("#nVer", d).value.trim() || "v0.1.0"); };
+    }
+    paint();
+    scrim.appendChild(d);
+    scrim.addEventListener("click", function (e) { if (e.target === scrim) scrim.remove(); });
+    document.body.appendChild(scrim);
+    d.paint = paint;
+  }
+
+  async function compileNotes(d, version) {
+    var go = $("#nGo", d); go.disabled = true; go.textContent = "Compiling…";
+    try {
+      var run = await client.workflows.runs.create("compile-release-notes");
+      var nodeId = (run.active_wait && run.active_wait.node_id) ? run.active_wait.node_id : "intake";
+      run = await client.workflows.runs.submitForm(run.id, { node_id: nodeId, inputs: { version: version } });
+      var terminal = { COMPLETED: 1, FAILED: 1, CANCELLED: 1, ERROR: 1 }, tries = 0;
+      while (!terminal[(run.status || "").toUpperCase()] && tries < 90) {
+        await new Promise(function (r) { setTimeout(r, 2000); });
+        run = await client.workflows.runs.get(run.id); tries++;
+      }
+      await loadAll();
+      if (d.paint) d.paint();
+      var st = (run.status || "").toUpperCase();
+      toast(st === "COMPLETED" ? "Release notes compiled for " + version : "Compile " + st + " — partial notes may exist", st === "COMPLETED" ? "ok" : "err");
+    } catch (e) { toast("Compile failed: " + (e.message || e), "err"); }
+    finally { try { go.disabled = false; go.textContent = "Compile"; } catch (e) {} }
+  }
+
+  // ---------- Incident: status badge + ack ----------
+  function incidentHtml(b) {
+    var inc = S.incidentByBug[b.id];
+    if (!inc) return '';
+    if (inc.status === "resolved") {
+      return '<div class="meta" style="margin-top:9px"><span class="tag" style="color:var(--green);background:var(--green-soft)">✓ incident resolved</span></div>';
+    }
+    var alerted = inc.alert_channel_msg ? ' · alert sent' : ' · no alert channel configured';
+    if (inc.status === "acked") {
+      return '<div class="meta" style="margin-top:9px"><span class="tag" style="color:var(--accent);background:var(--accent-soft)">acked' +
+        (inc.assignee_login ? ' by @' + esc(inc.assignee_login) : '') + '</span></div>';
+    }
+    // open
+    return '<div class="meta" style="margin-top:9px">' +
+      '<span class="tag" style="color:var(--p1);background:var(--p1-soft)">🚨 incident open' + esc(alerted) + '</span>' +
+      '<button class="btn ghost ack-btn" data-inc="' + esc(inc.id) + '" style="padding:4px 10px;font-size:11.5px;margin-left:7px">Ack</button>' +
+      '</div>';
+  }
+
+  async function ackIncident(incId, btn) {
+    btn.disabled = true;
+    try {
+      var res = await client.functions.run("ack_incident", { input: { incident_id: incId, acked_by: (S.user && S.user.email) || "" } });
+      var out = (res && (res.output_data || res.output)) || {};
+      if (out && out.ok) { toast("Incident acked", "ok"); await loadAll(); render(); }
+      else { toast("Ack failed: " + ((out && out.detail) || "unknown"), "err"); btn.disabled = false; }
+    } catch (e) { toast("Ack failed: " + (e.message || e), "err"); btn.disabled = false; }
+  }
+
+  // ---------- Auto-resolve: fix-PR status ----------
+  function fixPrHtml(b) {
+    if (b.fix_pr_status === "opened" && b.fix_pr_url) {
+      return '<div class="meta" style="margin-top:9px"><span class="tag" style="color:var(--green);background:var(--green-soft)">🤖 fix PR opened</span> ' +
+        '<a href="' + esc(b.fix_pr_url) + '" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--accent);text-decoration:none;margin-left:4px">view PR ↗</a></div>';
+    }
+    if (b.fix_pr_status === "failed") {
+      return '<div class="meta" style="margin-top:9px"><span class="tag" style="color:var(--p1);background:var(--p1-soft)">auto-fix PR failed</span></div>';
+    }
+    return '';
+  }
+
+  // ---------- Ownership: suggest (auto, in triage) + approve→assign ----------
+  function ownerHtml(b) {
+    if (b.assign_status === "assigned" && b.assignee_login) {
+      return '<div style="margin-top:10px;font-size:12px;color:var(--green)">✓ Assigned to <strong>@' + esc(b.assignee_login) + '</strong></div>';
+    }
+    if (b.assign_status === "suggested" && b.assignee_login) {
+      var commit = b.breaking_commit_url
+        ? ' · <a href="' + esc(b.breaking_commit_url) + '" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">breaking commit ↗</a>' : '';
+      return '<div style="margin-top:10px;padding:10px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px">' +
+        '<div style="font-size:12px"><span style="color:var(--muted)">suggested owner</span> &nbsp;<strong>@' + esc(b.assignee_login) + '</strong></div>' +
+        '<div style="font-size:11.5px;color:var(--text-2);margin-top:4px">' + esc(b.assignee_reason || "") + commit + '</div>' +
+        '<button class="btn primary assign-btn" data-bug="' + esc(b.id) + '" style="margin-top:9px;padding:6px 12px;font-size:12px">Approve &amp; assign →</button>' +
+        '</div>';
+    }
+    return '';
+  }
+
+  async function approveAssign(bugId, btn) {
+    if (!(S.cfg && S.cfg.repo)) { toast("Connect a repo first (🔗 button)", "err"); return; }
+    btn.disabled = true; var old = btn.textContent; btn.textContent = "Assigning…";
+    try {
+      var res = await client.functions.run("assign_owner", { input: { bug_id: bugId } });
+      var out = (res && (res.output_data || res.output)) || {};
+      if (out && out.ok) { toast(out.detail || "Assigned", "ok"); await loadAll(); render(); }
+      else { toast("Assign: " + ((out && out.detail) || (res && res.status) || "failed"), "err"); btn.disabled = false; btn.textContent = old; }
+    } catch (e) { toast("Assign failed: " + (e.message || e), "err"); btn.disabled = false; btn.textContent = old; }
+  }
+
+  // ---------- Settings: connect a GitHub repo (+ optional PAT) ----------
+  function openSettings() {
+    var scrim = h('<div class="scrim"></div>');
+    var repo = S.cfg && S.cfg.repo ? S.cfg.repo : "";
+    scrim.innerHTML =
+      '<div class="modal"><div class="head"><h2>🔗 Connect GitHub repo</h2></div>' +
+      '<div class="body">' +
+      '<div class="field"><label>Repository (owner/name)</label><input id="s-repo" class="mono" placeholder="octocat/Hello-World" value="' + esc(repo) + '" /></div>' +
+      '<div class="field"><label>Personal access token <span style="color:var(--muted)">(only needed to auto-assign; stored privately)</span></label><input id="s-pat" type="password" placeholder="ghp_… (fine-scoped, repo access)" /></div>' +
+      '<div style="font-size:11.5px;color:var(--muted);line-height:1.5">Reading a <strong>public</strong> repo needs no token — Cortex can already find the likely owner. A token is used only when you click “Approve &amp; assign”. Use a fine-scoped token and revoke it after the demo.</div>' +
+      '</div><div class="foot"><button class="btn ghost" id="s-cancel">Cancel</button><button class="btn primary" id="s-save">Save</button></div></div>';
+    document.body.appendChild(scrim);
+    scrim.addEventListener("click", function (e) { if (e.target === scrim) scrim.remove(); });
+    $("#s-cancel", scrim).onclick = function () { scrim.remove(); };
+    $("#s-save", scrim).onclick = async function () {
+      var repoVal = $("#s-repo", scrim).value.trim(), patVal = $("#s-pat", scrim).value.trim();
+      if (!repoVal) { toast("Repository is required", "err"); return; }
+      try {
+        var payload = { repo: repoVal, label: "default" };
+        if (patVal) payload.pat = patVal;
+        if (S.cfg && S.cfg.id) await client.records.update("github_config", S.cfg.id, payload);
+        else await client.records.create("github_config", payload);
+        scrim.remove(); await loadAll(); render(); toast("Repo connected: " + repoVal, "ok");
+      } catch (e) { toast("Save failed: " + (e.message || e), "err"); }
+    };
+  }
+  </script>
+</body>
+</html>

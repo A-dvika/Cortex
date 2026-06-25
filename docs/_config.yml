@@ -1,0 +1,9 @@
+title: Cortex-Triage Docs
+description: A guided, teaching-style tour of how Cortex-Triage is built on the Lemma SDK.
+theme: jekyll-theme-cayman
+markdown: kramdown
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true

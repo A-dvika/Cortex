@@ -156,7 +156,12 @@
     .card details { margin-top: 12px; }
     .card summary { cursor: pointer; font-size: 12px; color: var(--text-2); list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; font-weight: 600; }
     .card summary::-webkit-details-marker { display: none; }
-    .card summary::before { content: "▸"; color: var(--muted); transition: transform .15s; }
+    .card summary::before {
+      content: ""; display: inline-block; width: 0; height: 0;
+      border-style: solid; border-width: 4px 0 4px 6px;
+      border-color: transparent transparent transparent var(--muted);
+      transition: transform .15s;
+    }
     .card details[open] summary::before { transform: rotate(90deg); }
     .reason { font-size: 12.5px; color: var(--text-2); line-height: 1.55; margin: 10px 0 0; }
     .fix { margin-top: 10px; padding: 12px; background: var(--surface-2); border-radius: 12px; }
@@ -251,7 +256,7 @@
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
   function h(html) { var t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); }
-  function fatal(msg) { $("#root").innerHTML = '<div class="center"><div><div style="font-size:15px;margin-bottom:8px">⚠️ ' + esc(msg) + '</div><div style="color:var(--muted);font-size:13px">Open this app from inside the Lemma pod so it receives its config + session.</div></div></div>'; }
+  function fatal(msg) { $("#root").innerHTML = '<div class="center"><div><div style="font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px;justify-content:center">' + ic("alertTriangle", 18) + ' ' + esc(msg) + '</div><div style="color:var(--muted);font-size:13px">Open this app from inside the Lemma pod so it receives its config + session.</div></div></div>'; }
   function toast(msg, kind) {
     var t = h('<div class="toast ' + (kind || "") + '">' + esc(msg) + '</div>');
     $("#toasts").appendChild(t);
@@ -259,6 +264,33 @@
   }
   function items(res) { return (res && res.items) ? res.items : (Array.isArray(res) ? res : []); }
   function initials(name) { name = String(name || "?"); return name.slice(0, 1).toUpperCase(); }
+
+  // ---------- icon system (inline SVG, no external assets — replaces emoji) ----------
+  var ICONS = {
+    list: '<rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/>',
+    alertCircle: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16.01"/>',
+    arrowDownCircle: '<circle cx="12" cy="12" r="10"/><polyline points="8 10.5 12 14.5 16 10.5"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>',
+    sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+    refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+    plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    tool: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    alertTriangle: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17.01"/>',
+    gitPr: '<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'
+  };
+  var ICONS_FILLED = {
+    bolt: '<polygon points="13,2 3,14 11,14 9,22 21,10 13,10"/>'
+  };
+  function ic(name, size) {
+    size = size || 16;
+    if (ICONS_FILLED[name]) {
+      return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px;flex:none">' + ICONS_FILLED[name] + '</svg>';
+    }
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex:none">' + (ICONS[name] || "") + '</svg>';
+  }
   var SEV = { P1: { name: "P1 · Critical", cls: "p1" }, P2: { name: "P2 · High", cls: "p2" }, P3: { name: "P3 · Low", cls: "p3" } };
   function sevOf(b) { return (b.severity === "P1" || b.severity === "P2") ? b.severity : "P3"; }
 
@@ -312,11 +344,11 @@
         '<div><div class="k">' + k + '</div><div class="v">' + v + (sub || "") + '</div></div></div>';
     }
     return '<div class="metrics">' +
-      card("📋", "var(--accent-soft)", "var(--accent)", "Open bugs", total) +
-      card("🔥", "var(--p1-soft)", "var(--p1)", "Critical · P1", c.P1) +
-      card("⚡", "var(--p2-soft)", "var(--p2)", "High · P2", c.P2) +
-      card("🌤️", "var(--p3-soft)", "var(--p3)", "Low · P3", c.P3) +
-      card("🎯", "var(--green-soft)", "var(--green)", "Avg confidence", avg, '<span style="font-size:14px;color:var(--muted)">%</span>') +
+      card(ic("list", 18), "var(--accent-soft)", "var(--accent)", "Open bugs", total) +
+      card(ic("alertCircle", 18), "var(--p1-soft)", "var(--p1)", "Critical · P1", c.P1) +
+      card(ic("bolt", 16), "var(--p2-soft)", "var(--p2)", "High · P2", c.P2) +
+      card(ic("arrowDownCircle", 18), "var(--p3-soft)", "var(--p3)", "Low · P3", c.P3) +
+      card(ic("target", 18), "var(--green-soft)", "var(--green)", "Avg confidence", avg, '<span style="font-size:14px;color:var(--muted)">%</span>') +
       '</div>';
   }
 
@@ -344,7 +376,7 @@
     var det = '';
     if (b.reasoning) det += '<p class="reason"><strong style="color:var(--text-2)">Why ' + esc(b.severity) + ':</strong> ' + esc(b.reasoning) + '</p>';
     if (fix) {
-      det += '<div class="fix"><div class="fx-title">🔧 ' + esc(fix.title || "Suggested fix") +
+      det += '<div class="fix"><div class="fx-title">' + ic("tool", 14) + ' ' + esc(fix.title || "Suggested fix") +
         ' <span class="tag risk-' + esc(fix.risk_level || "medium") + '" style="margin-left:auto">' + esc(fix.risk_level || "medium") + ' risk</span>' +
         ' <span class="tag">' + esc(fix.estimated_effort || "small") + '</span></div>';
       if (fix.suggestion) det += '<div class="fx-body">' + esc(fix.suggestion) + '</div>';
@@ -376,7 +408,7 @@
 
   function boardPageHtml() {
     return metricsHtml() +
-      '<div class="toolbar"><div class="search">🔎 <input id="q" placeholder="Search bugs, types, fixes…" value="' + esc(S.q) + '" /></div>' +
+      '<div class="toolbar"><div class="search">' + ic("search", 15) + ' <input id="q" placeholder="Search bugs, types, fixes…" value="' + esc(S.q) + '" /></div>' +
       '<div class="chips">' + ["all", "P1", "P2", "P3"].map(function (f) {
         return '<button class="chip ' + (S.filter === f ? "active" : "") + '" data-f="' + f + '">' + (f === "all" ? "All" : f) + '</button>';
       }).join("") + '</div></div>' +
@@ -401,14 +433,14 @@
     html += '<div class="topbar"><div class="brand"><div class="logo">C</div><div><h1>Cortex-Triage</h1><p>Operator board</p></div></div>' +
       '<div class="spacer"></div>' +
       '<span class="who"><span class="av">' + esc(initials(who)) + '</span> ' + esc(who) + '</span>' +
-      '<button class="icon-btn" id="btnRefresh" title="Refresh">↻</button>' +
-      '<button class="icon-btn" id="btnSettings" title="Connect GitHub repo">⚙️</button></div>';
+      '<button class="icon-btn" id="btnRefresh" title="Refresh">' + ic("refresh", 16) + '</button>' +
+      '<button class="icon-btn" id="btnSettings" title="Connect GitHub repo">' + ic("sliders", 16) + '</button></div>';
     html += '<div class="tabbar">' +
       '<button class="tab-btn ' + (S.tab === "board" ? "active" : "") + '" data-tab="board">Board</button>' +
       '<button class="tab-btn ' + (S.tab === "releases" ? "active" : "") + '" data-tab="releases">Releases</button>' +
       '</div>';
     html += S.tab === "releases" ? releasesPageHtml() : boardPageHtml();
-    html += '</div><button class="fab" id="btnNew" title="New bug report">＋</button>';
+    html += '</div><button class="fab" id="btnNew" title="New bug report">' + ic("plus", 22) + '</button>';
     $("#root").innerHTML = html;
 
     $("#btnNew").onclick = openNewReport;
@@ -431,7 +463,7 @@
   function openNewReport() {
     var scrim = h('<div class="scrim"></div>');
     scrim.innerHTML =
-      '<div class="modal"><div class="head"><h2>＋ New bug report</h2></div>' +
+      '<div class="modal"><div class="head"><h2 style="display:flex;align-items:center;gap:9px">' + ic("plus", 17) + ' New bug report</h2></div>' +
       '<div class="body" id="mbody">' +
       '<div class="field"><label>Title *</label><input id="f-title" placeholder="e.g. Checkout returns 500 for all users" /></div>' +
       '<div class="field"><label>Description</label><textarea id="f-body" rows="4" placeholder="What happened, who is affected, since when…"></textarea></div>' +
@@ -462,8 +494,8 @@
     return '<div class="steps">' + STEP_ORDER.map(function (id, i) {
       var ai = STEP_ORDER.indexOf(active);
       var cls = i < ai ? "done" : (i === ai ? "active" : "");
-      var ic = i < ai ? "✓" : (i + 1);
-      return '<div class="step ' + cls + '"><div class="ic">' + ic + '</div>' + STEP_LABELS[id] + '</div>';
+      var mark = i < ai ? ic("check", 12) : (i + 1);
+      return '<div class="step ' + cls + '"><div class="ic">' + mark + '</div>' + STEP_LABELS[id] + '</div>';
     }).join("") + '</div>';
   }
 
@@ -487,7 +519,7 @@
       }
       var status = (run.status || "").toUpperCase();
       if (status === "COMPLETED") {
-        body.innerHTML = '<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Triaged ✓</div>' + stepperHtml("end");
+        body.innerHTML = '<div style="font-size:13px;color:var(--text-2);margin-bottom:14px;display:flex;align-items:center;gap:7px">Triaged ' + ic("check", 14) + '</div>' + stepperHtml("end");
         await loadAll();
         var newBug = S.bugs.find(function (b) { return b.title === inputs.title; });
         if (newBug) S.newest = newBug.id;
@@ -525,7 +557,7 @@
     var inc = S.incidentByBug[b.id];
     if (!inc) return '';
     if (inc.status === "resolved") {
-      return '<div class="meta" style="margin-top:10px"><span class="tag" style="color:var(--green);background:var(--green-soft)">✓ incident resolved</span></div>';
+      return '<div class="meta" style="margin-top:10px"><span class="tag" style="color:var(--green);background:var(--green-soft);display:inline-flex;align-items:center;gap:5px">' + ic("check", 11) + ' incident resolved</span></div>';
     }
     var alerted = inc.alert_channel_msg ? ' · alert sent' : ' · no alert channel configured';
     if (inc.status === "acked") {
@@ -533,7 +565,7 @@
         (inc.assignee_login ? ' by @' + esc(inc.assignee_login) : '') + '</span></div>';
     }
     return '<div class="meta" style="margin-top:10px">' +
-      '<span class="tag" style="color:var(--p1);background:var(--p1-soft)">🚨 incident open' + esc(alerted) + '</span>' +
+      '<span class="tag" style="color:var(--p1);background:var(--p1-soft);display:inline-flex;align-items:center;gap:5px">' + ic("alertTriangle", 11) + ' incident open' + esc(alerted) + '</span>' +
       '<button class="btn ghost ack-btn" data-inc="' + esc(inc.id) + '" style="padding:4px 11px;font-size:11.5px;margin-left:6px">Ack</button>' +
       '</div>';
   }
@@ -551,7 +583,7 @@
   // ---------- Auto-resolve: fix-PR status ----------
   function fixPrHtml(b) {
     if (b.fix_pr_status === "opened" && b.fix_pr_url) {
-      return '<div class="meta" style="margin-top:10px"><span class="tag" style="color:var(--green);background:var(--green-soft)">🤖 fix PR opened</span> ' +
+      return '<div class="meta" style="margin-top:10px"><span class="tag" style="color:var(--green);background:var(--green-soft);display:inline-flex;align-items:center;gap:5px">' + ic("gitPr", 11) + ' fix PR opened</span> ' +
         '<a href="' + esc(b.fix_pr_url) + '" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--accent);text-decoration:none;margin-left:4px;font-weight:600">view PR ↗</a></div>';
     }
     if (b.fix_pr_status === "failed") {
@@ -563,7 +595,7 @@
   // ---------- Ownership: suggest (auto, in triage) + approve→assign ----------
   function ownerHtml(b) {
     if (b.assign_status === "assigned" && b.assignee_login) {
-      return '<div class="panel soft" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--green);font-weight:600">✓ Assigned to @' + esc(b.assignee_login) + '</div>';
+      return '<div class="panel soft" style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--green);font-weight:600">' + ic("check", 13) + ' Assigned to @' + esc(b.assignee_login) + '</div>';
     }
     if (b.assign_status === "suggested" && b.assignee_login) {
       var commit = b.breaking_commit_url
@@ -578,7 +610,7 @@
   }
 
   async function approveAssign(bugId, btn) {
-    if (!(S.cfg && S.cfg.repo)) { toast("Connect a repo first (⚙️ button)", "err"); return; }
+    if (!(S.cfg && S.cfg.repo)) { toast("Connect a repo first (settings button)", "err"); return; }
     btn.disabled = true; var old = btn.textContent; btn.textContent = "Assigning…";
     try {
       var res = await client.functions.run("assign_owner", { input: { bug_id: bugId } });
@@ -593,7 +625,7 @@
     var scrim = h('<div class="scrim"></div>');
     var repo = S.cfg && S.cfg.repo ? S.cfg.repo : "";
     scrim.innerHTML =
-      '<div class="modal"><div class="head"><h2>⚙️ Connect GitHub repo</h2></div>' +
+      '<div class="modal"><div class="head"><h2 style="display:flex;align-items:center;gap:9px">' + ic("sliders", 16) + ' Connect GitHub repo</h2></div>' +
       '<div class="body">' +
       '<div class="field"><label>Repository (owner/name)</label><input id="s-repo" class="mono" placeholder="octocat/Hello-World" value="' + esc(repo) + '" /></div>' +
       '<div class="field"><label>Personal access token <span style="color:var(--muted);font-weight:400">(only needed to auto-assign; stored privately)</span></label><input id="s-pat" type="password" placeholder="ghp_… (fine-scoped, repo access)" /></div>' +

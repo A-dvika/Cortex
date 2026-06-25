@@ -1,0 +1,11 @@
+{
+  "name": "persist_release_notes",
+  "description": "Writes the release_notes row from the writer agent's structured output. The agent never touches the table directly.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "release_notes",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] }
+  ] }
+}

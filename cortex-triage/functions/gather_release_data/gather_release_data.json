@@ -1,0 +1,13 @@
+{
+  "name": "gather_release_data",
+  "description": "Deterministically reads triaged bugs and their fixes and hands the release-notes-writer agent a plain JSON list — no tool use inside the agent conversation.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "fixes",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

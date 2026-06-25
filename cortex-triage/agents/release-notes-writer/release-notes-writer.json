@@ -1,22 +1,39 @@
 {
   "name": "release-notes-writer",
-  "description": "Reads triaged bugs and their fixes from the pod and drafts a release-notes row for a given version.",
+  "description": "Pure reasoner: given a JSON list of triaged bugs+fixes, composes release notes. Touches no tables — gather_release_data reads, persist_release_notes writes.",
   "instruction": { "$file": "instruction.md" },
   "toolsets": ["POD"],
   "visibility": "POD",
   "input_schema": {
     "type": "object",
     "properties": {
-      "version": { "type": "string" }
+      "bugs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "bug_type": { "type": "string" },
+            "severity": { "type": "string" },
+            "reasoning": { "type": "string" },
+            "fix_title": { "type": "string" },
+            "fix_suggestion": { "type": "string" },
+            "risk_level": { "type": "string" },
+            "estimated_effort": { "type": "string" }
+          }
+        }
+      }
     },
-    "required": ["version"]
+    "required": ["bugs"]
   },
-  "permissions": { "grants": [
-    { "resource_type": "datastore_table", "resource_name": "bugs",
-      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
-    { "resource_type": "datastore_table", "resource_name": "fixes",
-      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
-    { "resource_type": "datastore_table", "resource_name": "release_notes",
-      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] }
-  ] }
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "notes_markdown": { "type": "string" },
+      "highlights": { "type": "array", "items": { "type": "string" } },
+      "breaking_changes": { "type": "array", "items": { "type": "string" } }
+    },
+    "required": ["notes_markdown", "highlights", "breaking_changes"]
+  },
+  "permissions": { "grants": [] }
 }

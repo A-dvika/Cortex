@@ -1,6 +1,6 @@
 {
   "name": "compile-release-notes",
-  "description": "Compile release notes for a version from the triaged bugs and their fixes.",
+  "description": "Compile release notes for a version: a function gathers bugs+fixes, a pure-reasoner agent drafts the notes, a function persists the row.",
   "start": { "type": "MANUAL" },
   "nodes": [
     { "id": "intake", "type": "FORM", "label": "Release version",
@@ -12,17 +12,32 @@
         "required": ["version"]
       } } },
 
+    { "id": "gather", "type": "FUNCTION", "label": "Gather triaged bugs + fixes",
+      "config": { "function_name": "gather_release_data", "input_mapping": {} } },
+
     { "id": "compile", "type": "AGENT", "label": "Draft release notes",
       "config": { "agent_name": "release-notes-writer",
         "input_mapping": {
-          "version": { "type": "expression", "value": "intake.version" }
+          "bugs": { "type": "expression", "value": "gather.bugs" }
         } } },
 
-    { "id": "end", "type": "END", "label": "Notes drafted" }
+    { "id": "persist", "type": "FUNCTION", "label": "Save release notes",
+      "config": { "function_name": "persist_release_notes",
+        "input_mapping": {
+          "version": { "type": "expression", "value": "intake.version" },
+          "notes_markdown": { "type": "expression", "value": "compile.notes_markdown" },
+          "highlights": { "type": "expression", "value": "compile.highlights" },
+          "breaking_changes": { "type": "expression", "value": "compile.breaking_changes" },
+          "bug_count": { "type": "expression", "value": "gather.bug_count" }
+        } } },
+
+    { "id": "end", "type": "END", "label": "Notes saved" }
   ],
   "edges": [
-    { "id": "e1", "source": "intake", "target": "compile" },
-    { "id": "e2", "source": "compile", "target": "end" }
+    { "id": "e1", "source": "intake", "target": "gather" },
+    { "id": "e2", "source": "gather", "target": "compile" },
+    { "id": "e3", "source": "compile", "target": "persist" },
+    { "id": "e4", "source": "persist", "target": "end" }
   ],
   "visibility": "POD"
 }

@@ -20,6 +20,28 @@ do not apply the fix — you draft it.
 - `ui` → fix the component state, the layout rule, or the copy; check responsive/edge states.
 - `docs` → state exactly what to add or correct and where.
 
+## Calibrating `risk_level` and `fix_confidence` (read this carefully)
+
+Downstream, a fix you mark **`risk_level: "low"` with `fix_confidence` ≥ 0.55**
+is eligible to have a real pull request opened automatically (a human still
+reviews and merges it — but it skips the manual-triage queue). That only works
+if your calibration is honest in *both* directions:
+
+- **Don't be reflexively cautious.** A genuinely small, mechanical, unambiguous
+  change — a typo, a copy/label fix, an obvious off-by-one, an unguarded null
+  check on a clearly identified field — *is* low risk and you should say so
+  with confidence 0.7–0.9. Under-rating these defeats the point of having an
+  automated path for the easy cases.
+- **Don't inflate confidence when you're guessing.** If you can't see the
+  actual code and the root cause requires real investigation (e.g. a vague
+  performance complaint, a flaky failure with no clear trigger), say so
+  plainly, mark `risk_level: "medium"` or `"high"`, and keep `fix_confidence`
+  at 0.3–0.5. This is correct caution, not a flaw to fix.
+- The dividing line is **certainty about the root cause**, not how the bug
+  "feels." A P1 crash can still be low-risk-to-fix if the cause is obvious
+  (e.g. "the deploy notes literally say the new code path is unguarded");
+  a cosmetic P3 can be medium-risk if you're not sure why it happens.
+
 ## How to respond
 Return ONLY the output-schema fields. Be specific and practical; prefer the
 smallest change that addresses the root cause. If the report is too vague to fix

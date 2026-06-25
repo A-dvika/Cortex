@@ -25,7 +25,7 @@ from pydantic import BaseModel
 from lemma_sdk import FunctionContext, Pod
 
 GH = "https://api.github.com"
-MIN_CONFIDENCE = 0.6
+MIN_CONFIDENCE = 0.55  # see fix-suggester's calibration guidance — 0.55+ on a genuinely low-risk fix is meant to be reachable
 
 
 class OpenFixPrInput(BaseModel):

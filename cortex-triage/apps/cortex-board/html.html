@@ -296,7 +296,7 @@
 
   // ---------- state ----------
   var client = null;
-  var S = { user: null, bugs: [], fixByBug: {}, issueById: {}, incidentByBug: {}, notes: [], cfg: null, filter: "all", q: "", loading: true, newest: null, tab: "board" };
+  var S = { user: null, bugs: [], fixByBug: {}, issueById: {}, incidentByBug: {}, notes: [], cfg: null, alertCfg: null, filter: "all", q: "", loading: true, newest: null, tab: "board" };
 
   async function boot() {
     try {
@@ -330,6 +330,7 @@
     S.issueById = {}; issues.forEach(function (i) { S.issueById[i.id] = i; });
     S.notes = notes.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
     try { var cf = items(await client.records.list("github_config", { limit: 1 })); S.cfg = cf[0] || null; } catch (e) { S.cfg = null; }
+    try { var af = items(await client.records.list("alert_config", { limit: 1 })); S.alertCfg = af[0] || null; } catch (e) { S.alertCfg = null; }
     S.loading = false;
   }
 
@@ -453,6 +454,7 @@
       Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) { c.onclick = function () { S.filter = c.dataset.f; render(); }; });
       Array.prototype.forEach.call(document.querySelectorAll(".assign-btn"), function (b) { b.onclick = function () { approveAssign(b.dataset.bug, b); }; });
       Array.prototype.forEach.call(document.querySelectorAll(".ack-btn"), function (b) { b.onclick = function () { ackIncident(b.dataset.inc, b); }; });
+      Array.prototype.forEach.call(document.querySelectorAll(".resolve-btn"), function (b) { b.onclick = function () { resolveIncident(b.dataset.inc, b); }; });
       if (S.newest) setTimeout(function () { S.newest = null; }, 1800);
     } else {
       var go = $("#nGo"); if (go) go.onclick = function () { compileNotes(($("#nVer").value || "").trim() || "v0.1.0", go); };
@@ -560,13 +562,15 @@
       return '<div class="meta" style="margin-top:10px"><span class="tag" style="color:var(--green);background:var(--green-soft);display:inline-flex;align-items:center;gap:5px">' + ic("check", 11) + ' incident resolved</span></div>';
     }
     var alerted = inc.alert_channel_msg ? ' · alert sent' : ' · no alert channel configured';
+    var resolveBtn = '<button class="btn ghost resolve-btn" data-inc="' + esc(inc.id) + '" style="padding:4px 11px;font-size:11.5px;margin-left:6px">Resolve</button>';
     if (inc.status === "acked") {
       return '<div class="meta" style="margin-top:10px"><span class="tag" style="color:var(--accent);background:var(--accent-soft)">acked' +
-        (inc.assignee_login ? ' by @' + esc(inc.assignee_login) : '') + '</span></div>';
+        (inc.assignee_login ? ' by @' + esc(inc.assignee_login) : '') + '</span>' + resolveBtn + '</div>';
     }
     return '<div class="meta" style="margin-top:10px">' +
       '<span class="tag" style="color:var(--p1);background:var(--p1-soft);display:inline-flex;align-items:center;gap:5px">' + ic("alertTriangle", 11) + ' incident open' + esc(alerted) + '</span>' +
       '<button class="btn ghost ack-btn" data-inc="' + esc(inc.id) + '" style="padding:4px 11px;font-size:11.5px;margin-left:6px">Ack</button>' +
+      resolveBtn +
       '</div>';
   }
 
@@ -578,6 +582,16 @@
       if (out && out.ok) { toast("Incident acked", "ok"); await loadAll(); render(); }
       else { toast("Ack failed: " + ((out && out.detail) || "unknown"), "err"); btn.disabled = false; }
     } catch (e) { toast("Ack failed: " + (e.message || e), "err"); btn.disabled = false; }
+  }
+
+  async function resolveIncident(incId, btn) {
+    btn.disabled = true;
+    try {
+      var res = await client.functions.run("resolve_incident", { input: { incident_id: incId } });
+      var out = (res && (res.output_data || res.output)) || {};
+      if (out && out.ok) { toast("Incident resolved", "ok"); await loadAll(); render(); }
+      else { toast("Resolve failed: " + ((out && out.detail) || "unknown"), "err"); btn.disabled = false; }
+    } catch (e) { toast("Resolve failed: " + (e.message || e), "err"); btn.disabled = false; }
   }
 
   // ---------- Auto-resolve: fix-PR status ----------
@@ -624,25 +638,37 @@
   function openSettings() {
     var scrim = h('<div class="scrim"></div>');
     var repo = S.cfg && S.cfg.repo ? S.cfg.repo : "";
+    var webhook = S.alertCfg && S.alertCfg.slack_webhook_url ? S.alertCfg.slack_webhook_url : "";
+    var escMin = S.alertCfg && S.alertCfg.escalation_minutes ? S.alertCfg.escalation_minutes : 15;
     scrim.innerHTML =
-      '<div class="modal"><div class="head"><h2 style="display:flex;align-items:center;gap:9px">' + ic("sliders", 16) + ' Connect GitHub repo</h2></div>' +
+      '<div class="modal"><div class="head"><h2 style="display:flex;align-items:center;gap:9px">' + ic("sliders", 16) + ' Settings</h2></div>' +
       '<div class="body">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px">GitHub</div>' +
       '<div class="field"><label>Repository (owner/name)</label><input id="s-repo" class="mono" placeholder="octocat/Hello-World" value="' + esc(repo) + '" /></div>' +
       '<div class="field"><label>Personal access token <span style="color:var(--muted);font-weight:400">(only needed to auto-assign; stored privately)</span></label><input id="s-pat" type="password" placeholder="ghp_… (fine-scoped, repo access)" /></div>' +
       '<div style="font-size:11.5px;color:var(--muted);line-height:1.55">Reading a <strong>public</strong> repo needs no token — Cortex can already find the likely owner. A token is used only when you click "Approve &amp; assign". Use a fine-scoped token and revoke it after the demo.</div>' +
+      '<div style="font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-top:6px">Alerts</div>' +
+      '<div class="field"><label>Slack incoming webhook URL <span style="color:var(--muted);font-weight:400">(P1/P2 incidents post here)</span></label><input id="s-webhook" class="mono" placeholder="https://hooks.slack.com/services/…" value="' + esc(webhook) + '" /></div>' +
+      '<div class="field"><label>Escalation window (minutes)</label><input id="s-escmin" type="number" min="1" value="' + esc(escMin) + '" /></div>' +
       '</div><div class="foot"><button class="btn ghost" id="s-cancel">Cancel</button><button class="btn primary" id="s-save">Save</button></div></div>';
     document.body.appendChild(scrim);
     scrim.addEventListener("click", function (e) { if (e.target === scrim) scrim.remove(); });
     $("#s-cancel", scrim).onclick = function () { scrim.remove(); };
     $("#s-save", scrim).onclick = async function () {
       var repoVal = $("#s-repo", scrim).value.trim(), patVal = $("#s-pat", scrim).value.trim();
+      var webhookVal = $("#s-webhook", scrim).value.trim(), escMinVal = parseInt($("#s-escmin", scrim).value, 10) || 15;
       if (!repoVal) { toast("Repository is required", "err"); return; }
       try {
         var payload = { repo: repoVal, label: "default" };
         if (patVal) payload.pat = patVal;
         if (S.cfg && S.cfg.id) await client.records.update("github_config", S.cfg.id, payload);
         else await client.records.create("github_config", payload);
-        scrim.remove(); await loadAll(); render(); toast("Repo connected: " + repoVal, "ok");
+
+        var alertPayload = { slack_webhook_url: webhookVal, escalation_minutes: escMinVal, label: "default" };
+        if (S.alertCfg && S.alertCfg.id) await client.records.update("alert_config", S.alertCfg.id, alertPayload);
+        else await client.records.create("alert_config", alertPayload);
+
+        scrim.remove(); await loadAll(); render(); toast("Settings saved", "ok");
       } catch (e) { toast("Save failed: " + (e.message || e), "err"); }
     };
   }

@@ -1,0 +1,13 @@
+{
+  "name": "ingest_external_report",
+  "description": "Normalize one Jira, Slack, email, GitHub, or manual report into a pending issue row, deduped by source + external_id. Use this as the webhook/import target before triage.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "issues",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "source_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

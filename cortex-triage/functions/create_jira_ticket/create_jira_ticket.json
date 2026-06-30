@@ -1,0 +1,13 @@
+{
+  "name": "create_jira_ticket",
+  "description": "Creates a Jira ticket for a triaged bug, pre-filled with severity, reasoning, and the suggested (not assigned) owner. Best-effort: a no-op with a clear detail message if source_config has no Jira credentials yet.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+    { "resource_type": "datastore_table", "resource_name": "source_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

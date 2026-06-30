@@ -1,0 +1,107 @@
+{
+  "name": "poll-github-issues",
+  "description": "Checks the connected GitHub repo for one new issue and triages it the same way the manual 'New bug report' button does — classify, suggest a fix, persist, suggest an owner, open a Jira ticket, post to Slack, open an incident if warranted, auto-PR if eligible. Driven by the poll-github-issues TIME schedule (every 2 min) — see schedules/poll-github-issues. One new issue per run is enough for how often any one repo gets new reports; anything left over is picked up on the next cycle.",
+  "start": { "type": "MANUAL" },
+  "nodes": [
+    { "id": "poll", "type": "FUNCTION", "label": "Find one new issue",
+      "config": { "function_name": "poll_github_issues", "input_mapping": {} } },
+
+    { "id": "gate", "type": "DECISION", "label": "Only if something new was found",
+      "config": { "rules": [
+        { "condition": "poll.found == `true`", "next_node_id": "triage" }
+      ] } },
+
+    { "id": "triage", "type": "AGENT", "label": "Classify & score",
+      "config": { "agent_name": "triage-agent",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "poll.title" },
+          "body": { "type": "expression", "value": "poll.body" }
+        } } },
+
+    { "id": "suggest", "type": "FUNCTION", "label": "Suggest a fix",
+      "config": { "function_name": "suggest_fix",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "poll.title" },
+          "body": { "type": "expression", "value": "poll.body" },
+          "bug_type": { "type": "expression", "value": "triage.bug_type" }
+        } } },
+
+    { "id": "persist", "type": "FUNCTION", "label": "Save issue, bug & fix",
+      "config": { "function_name": "persist_triage",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "poll.title" },
+          "body": { "type": "expression", "value": "poll.body" },
+          "source": { "type": "literal", "value": "github" },
+          "url": { "type": "expression", "value": "poll.url" },
+          "reporter": { "type": "expression", "value": "poll.reporter" },
+          "external_id": { "type": "expression", "value": "poll.external_id" },
+          "bug_type": { "type": "expression", "value": "triage.bug_type" },
+          "severity": { "type": "expression", "value": "triage.severity" },
+          "impact_score": { "type": "expression", "value": "triage.impact_score" },
+          "urgency_score": { "type": "expression", "value": "triage.urgency_score" },
+          "confidence": { "type": "expression", "value": "triage.confidence" },
+          "is_duplicate": { "type": "expression", "value": "triage.is_duplicate" },
+          "duplicate_of": { "type": "expression", "value": "triage.duplicate_of" },
+          "reasoning": { "type": "expression", "value": "triage.reasoning" },
+          "is_production_code": { "type": "expression", "value": "triage.is_production_code" },
+          "affected_service_count": { "type": "expression", "value": "triage.affected_service_count" },
+          "fix_complexity": { "type": "expression", "value": "triage.fix_complexity" },
+          "fix_title": { "type": "expression", "value": "suggest.fix_title" },
+          "fix_suggestion": { "type": "expression", "value": "suggest.fix_suggestion" },
+          "fix_code": { "type": "expression", "value": "suggest.fix_code" },
+          "risk_level": { "type": "expression", "value": "suggest.risk_level" },
+          "estimated_effort": { "type": "expression", "value": "suggest.estimated_effort" },
+          "fix_confidence": { "type": "expression", "value": "suggest.fix_confidence" }
+        } } },
+
+    { "id": "owner", "type": "FUNCTION", "label": "Suggest owner (GitHub)",
+      "config": { "function_name": "suggest_owner",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
+    { "id": "jira", "type": "FUNCTION", "label": "Open Jira ticket",
+      "config": { "function_name": "create_jira_ticket",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
+    { "id": "notify", "type": "FUNCTION", "label": "Notify owner on Slack",
+      "config": { "function_name": "notify_owner_slack",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
+    { "id": "incident", "type": "FUNCTION", "label": "Open incident & alert",
+      "config": { "function_name": "open_incident",
+        "input_mapping": {
+          "title": { "type": "expression", "value": "poll.title" },
+          "summary": { "type": "expression", "value": "triage.reasoning" },
+          "severity": { "type": "expression", "value": "triage.severity" },
+          "bug_id": { "type": "expression", "value": "persist.bug_id" },
+          "source": { "type": "literal", "value": "github" }
+        } } },
+
+    { "id": "auto_resolve", "type": "FUNCTION", "label": "Auto-resolve (PR if eligible)",
+      "config": { "function_name": "open_fix_pr",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
+    { "id": "end", "type": "END", "label": "Done" }
+  ],
+  "edges": [
+    { "id": "e0", "source": "poll", "target": "gate" },
+    { "id": "enothing", "source": "gate", "target": "end" },
+    { "id": "egate", "source": "gate", "target": "triage" },
+    { "id": "e1", "source": "triage", "target": "suggest" },
+    { "id": "e2", "source": "suggest", "target": "persist" },
+    { "id": "e3", "source": "persist", "target": "owner" },
+    { "id": "e4", "source": "owner", "target": "jira" },
+    { "id": "e5", "source": "jira", "target": "notify" },
+    { "id": "e6", "source": "notify", "target": "incident" },
+    { "id": "e7", "source": "incident", "target": "auto_resolve" },
+    { "id": "e8", "source": "auto_resolve", "target": "end" }
+  ],
+  "visibility": "POD"
+}

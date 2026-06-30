@@ -25,9 +25,11 @@ cortex-triage/
     release_notes/   compiled changelog rows
     github_config/   per-user repo + PAT (PERSONAL, RLS)
     alert_config/    per-user Slack webhooks + escalation timing (PERSONAL, RLS)
+    source_config/   per-user Jira/Slack/email intake settings (PERSONAL, RLS)
   functions/
     persist_triage/     writes issue+bug+fix (Python, Pod.from_env)
     github_ping/        connectivity probe (verifies outbound HTTP works)
+    ingest_external_report/ normalizes Jira/Slack/email/GitHub payloads into pending issues
     suggest_owner/       read-only GitHub: commits + CODEOWNERS -> likely owner
     assign_owner/        write: assigns the GitHub issue + comments (human-gated)
     open_incident/       creates an incident; P1=urgent alert, P2=normal, P3=silent

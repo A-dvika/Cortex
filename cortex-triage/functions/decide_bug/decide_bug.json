@@ -1,0 +1,11 @@
+{
+  "name": "decide_bug",
+  "description": "Records a human's triage decision on a bug — assign, defer, backlog, or close — with a reason and timestamp, so the call is auditable later.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] }
+  ] }
+}

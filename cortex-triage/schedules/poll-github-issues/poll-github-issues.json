@@ -1,0 +1,8 @@
+{
+  "name": "poll-github-issues",
+  "schedule_type": "TIME",
+  "config": { "cron": "*/2 * * * *" },
+  "workflow_name": "poll-github-issues",
+  "is_active": true,
+  "visibility": "POD"
+}

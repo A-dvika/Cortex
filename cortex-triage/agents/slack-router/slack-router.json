@@ -1,0 +1,32 @@
+{
+  "name": "slack-router",
+  "description": "Classifies a free-form Slack message into one of Cortex-Triage's MCP tools and extracts its arguments.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": [],
+  "visibility": "POD",
+  "agent_runtime": { "profile_id": "system:lemma", "model_name": "deepseek-v4-flash" },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "message": { "type": "string" }
+    },
+    "required": ["message"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "tool": { "type": "string", "enum": ["triage_bug_report", "list_open_bugs", "compile_release_notes", "get_bug", "decide_bug", "link_slack_identity", "none"] },
+      "title": { "type": "string" },
+      "body": { "type": "string" },
+      "severity": { "type": "string", "enum": ["P1", "P2", "P3", ""] },
+      "version": { "type": "string" },
+      "bug_id": { "type": "string" },
+      "decision": { "type": "string", "enum": ["assign", "defer", "backlog", "close", ""] },
+      "reason": { "type": "string" },
+      "github_login": { "type": "string" },
+      "reasoning": { "type": "string" }
+    },
+    "required": ["tool", "reasoning"]
+  },
+  "permissions": { "grants": [] }
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Checkout returns 500 for all users",
+  "body": "Since the 14:00 deploy every payment attempt fails with a 500. No workaround.",
+  "source": "manual"
+}

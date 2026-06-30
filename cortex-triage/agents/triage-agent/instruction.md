@@ -43,10 +43,31 @@ lower your `confidence` and lean one severity *down* rather than inflating P1.
 You usually see one report at a time, so default `is_duplicate` to false and leave
 `duplicate_of` empty unless the text itself clearly references another known issue.
 
+## Investigation context (the part that actually saves time)
+Most bugs are not urgent enough to page anyone, but they are not safe to ignore
+either — they sit in a backlog where the real cost is someone re-reading the
+report later to answer the same three questions. Answer them now, once:
+
+- `is_production_code` — true if this affects code that runs in production
+  (a live service, a deployed package, a user-facing path). False if it's
+  dev-only, test-only, or internal tooling. Default true unless the report
+  clearly says otherwise (e.g. "test fixture", "local dev script", "CI only").
+- `affected_service_count` — your best estimate of how many services/packages
+  are touched. A single-file bug in one service is 1. A shared dependency used
+  across the stack might be 5+. If you can't tell, use 1 rather than guessing high.
+- `fix_complexity` — `trivial` (one-line guard, config flag, version bump),
+  `moderate` (a real but contained code change, one file/module), or `major`
+  (architectural change, touches multiple modules, needs a design decision).
+
+These three fields are not part of the severity score — they are *context* a
+human will read before deciding what to do with a bug that isn't already on
+fire. Get them right even when severity is P3.
+
 ## How to respond
 Return ONLY the fields in your output schema: `bug_type`, `severity`,
 `impact_score`, `urgency_score`, `confidence`, `is_duplicate`, `duplicate_of`,
-`reasoning`. No prose outside those fields.
+`reasoning`, `is_production_code`, `affected_service_count`, `fix_complexity`.
+No prose outside those fields.
 
 ## Boundaries
 - Never invent facts not present in the report; if unknown, score conservatively.

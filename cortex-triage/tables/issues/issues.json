@@ -5,8 +5,9 @@
   "visibility": "POD",
   "columns": [
     { "name": "source", "type": "ENUM", "required": true, "default": "manual",
-      "options": ["github", "slack", "email", "manual"] },
+      "options": ["github", "jira", "slack", "email", "manual"] },
     { "name": "external_id", "type": "TEXT", "max_length": 120 },
+    { "name": "repo", "type": "TEXT", "max_length": 200 },
     { "name": "title", "type": "TEXT", "required": true, "max_length": 300 },
     { "name": "body", "type": "TEXT" },
     { "name": "url", "type": "TEXT", "max_length": 600 },

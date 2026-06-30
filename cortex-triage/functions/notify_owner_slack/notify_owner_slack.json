@@ -1,0 +1,13 @@
+{
+  "name": "notify_owner_slack",
+  "description": "Posts a Slack message for every triaged bug — severity, suggested owner, Jira/GitHub links. Best-effort: a no-op with a clear detail if alert_config has no webhook yet.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "bugs",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "alert_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

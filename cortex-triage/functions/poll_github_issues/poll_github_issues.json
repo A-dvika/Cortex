@@ -1,0 +1,13 @@
+{
+  "name": "poll_github_issues",
+  "description": "Checks the connected GitHub repo and returns the single newest issue Cortex hasn't seen yet (matched against the issues table). Read-only — the poll-github-issues workflow does the actual triage in the same run. Driven by the poll-github-issues TIME schedule (every 2 min).",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [
+    { "resource_type": "datastore_table", "resource_name": "github_config",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+    { "resource_type": "datastore_table", "resource_name": "issues",
+      "permission_ids": ["datastore.table.read", "datastore.record.read"] }
+  ] }
+}

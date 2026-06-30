@@ -2,8 +2,9 @@
   "name": "release-notes-writer",
   "description": "Pure reasoner: given a JSON list of triaged bugs+fixes, composes release notes. Touches no tables — gather_release_data reads, persist_release_notes writes.",
   "instruction": { "$file": "instruction.md" },
-  "toolsets": ["POD"],
+  "toolsets": [],
   "visibility": "POD",
+  "agent_runtime": { "profile_id": "system:lemma", "model_name": "deepseek-v4-flash" },
   "input_schema": {
     "type": "object",
     "properties": {

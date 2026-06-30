@@ -1,0 +1,19 @@
+{
+  "name": "source_config",
+  "primary_key_column": "id",
+  "enable_rls": true,
+  "visibility": "PERSONAL",
+  "columns": [
+    { "name": "label", "type": "TEXT", "max_length": 120, "default": "default" },
+    { "name": "jira_base_url", "type": "TEXT", "max_length": 300 },
+    { "name": "jira_email", "type": "TEXT", "max_length": 200 },
+    { "name": "jira_api_token", "type": "TEXT", "max_length": 600 },
+    { "name": "jira_project_key", "type": "TEXT", "max_length": 80 },
+    { "name": "jira_jql", "type": "TEXT", "max_length": 600 },
+    { "name": "slack_bot_token", "type": "TEXT", "max_length": 600 },
+    { "name": "slack_channel_id", "type": "TEXT", "max_length": 120 },
+    { "name": "email_inbox_address", "type": "TEXT", "max_length": 240 },
+    { "name": "auto_triage_enabled", "type": "BOOLEAN", "default": true }
+  ],
+  "config": {}
+}

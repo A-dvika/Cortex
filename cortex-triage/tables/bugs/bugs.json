@@ -19,13 +19,30 @@
     { "name": "reasoning", "type": "TEXT" },
     { "name": "assignee_login", "type": "TEXT", "max_length": 120 },
     { "name": "assignee_reason", "type": "TEXT" },
+    { "name": "assignee_candidates", "type": "TEXT" },
     { "name": "breaking_commit", "type": "TEXT", "max_length": 60 },
     { "name": "breaking_commit_url", "type": "TEXT", "max_length": 600 },
     { "name": "assign_status", "type": "ENUM", "required": true, "default": "none",
       "options": ["none", "suggested", "assigned"] },
     { "name": "fix_pr_url", "type": "TEXT", "max_length": 600 },
     { "name": "fix_pr_status", "type": "ENUM", "required": true, "default": "none",
-      "options": ["none", "ineligible", "opened", "failed"] }
+      "options": ["none", "ineligible", "opened", "failed"] },
+
+    { "name": "is_production_code", "type": "BOOLEAN", "default": true },
+    { "name": "affected_service_count", "type": "INTEGER", "default": 1 },
+    { "name": "fix_complexity", "type": "ENUM", "required": true, "default": "moderate",
+      "options": ["trivial", "moderate", "major"] },
+
+    { "name": "decision_status", "type": "ENUM", "required": true, "default": "pending",
+      "options": ["pending", "assigned", "deferred", "backlogged", "closed"] },
+    { "name": "human_decision", "type": "TEXT", "max_length": 60 },
+    { "name": "decision_reason", "type": "TEXT" },
+    { "name": "decision_by", "type": "TEXT", "max_length": 120 },
+    { "name": "decided_at", "type": "DATETIME" },
+    { "name": "deferred_until", "type": "DATETIME" },
+
+    { "name": "jira_issue_key", "type": "TEXT", "max_length": 60 },
+    { "name": "jira_issue_url", "type": "TEXT", "max_length": 600 }
   ],
   "config": {}
 }

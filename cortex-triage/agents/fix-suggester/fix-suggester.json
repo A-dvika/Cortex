@@ -2,8 +2,9 @@
   "name": "fix-suggester",
   "description": "Proposes a concrete first-pass fix for a triaged bug: what to do, a code sketch, risk level, and effort estimate.",
   "instruction": { "$file": "instruction.md" },
-  "toolsets": ["POD"],
+  "toolsets": [],
   "visibility": "POD",
+  "agent_runtime": { "profile_id": "system:lemma", "model_name": "deepseek-v4-flash" },
   "input_schema": {
     "type": "object",
     "properties": {

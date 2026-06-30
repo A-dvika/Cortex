@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cortex Triage Demo Intro</title>
+  <style>
+    :root {
+      --bg: #0b0d0b;
+      --surface: #171817;
+      --surface-2: #202120;
+      --surface-3: #252625;
+      --border: #292b2a;
+      --border-strong: #383a38;
+      --text: #f4f4f1;
+      --text-2: #b8b8b2;
+      --muted: #85857f;
+      --accent: #8288f6;
+      --accent-2: #f4b84f;
+      --accent-soft: rgba(130,136,246,0.20);
+      --p1: #ff6f61;
+      --p1-soft: rgba(255,111,97,0.14);
+      --p2: #f4b84f;
+      --p2-soft: rgba(244,184,79,0.16);
+      --p3: #9da0a0;
+      --p3-soft: rgba(157,160,160,0.14);
+      --green: #55d69b;
+      --green-soft: rgba(85,214,155,0.13);
+      --shadow: 0 28px 90px rgba(0,0,0,.48);
+      --ease: cubic-bezier(.2,.8,.2,1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: 16px;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      min-width: 960px;
+      min-height: 540px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 78% 22%, rgba(130,136,246,.11), transparent 29%),
+        radial-gradient(circle at 12% 82%, rgba(244,184,79,.08), transparent 26%),
+        linear-gradient(180deg, #101210 0%, #0b0d0b 46%, #080908 100%);
+    }
+
+    .grid {
+      position: absolute;
+      inset: 0;
+      opacity: .24;
+      background-image:
+        linear-gradient(rgba(244,244,241,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(244,244,241,.035) 1px, transparent 1px);
+      background-size: 80px 80px;
+      transform: perspective(900px) rotateX(58deg) translateY(240px) scale(1.35);
+      transform-origin: center bottom;
+      animation: gridDrift 18s linear infinite;
+    }
+
+    .noise {
+      position: absolute;
+      inset: -40%;
+      pointer-events: none;
+      opacity: .13;
+      background-image: repeating-radial-gradient(circle at 50% 50%, rgba(244,244,241,.22) 0 1px, transparent 1px 7px);
+      animation: noiseMove 1.8s steps(4) infinite;
+      mix-blend-mode: overlay;
+    }
+
+    .topbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 34px;
+      gap: 18px;
+      border-bottom: 1px solid rgba(41,43,42,.9);
+      background: rgba(11,13,11,.84);
+      backdrop-filter: blur(18px);
+      z-index: 20;
+    }
+
+    .cortex-mark {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), #6f74ee);
+      box-shadow: 0 0 32px rgba(130,136,246,.28), inset 0 0 0 1px rgba(255,255,255,.18);
+      flex: 0 0 auto;
+    }
+    .cortex-mark:before,
+    .cortex-mark:after,
+    .cortex-mark i {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 2px solid rgba(255,255,255,.88);
+      border-radius: 50%;
+    }
+    .cortex-mark:after {
+      inset: 14px;
+      background: #ffffff;
+      border: 0;
+      box-shadow: 0 0 16px rgba(255,255,255,.65);
+    }
+    .cortex-mark i {
+      inset: 4px;
+      border-color: rgba(255,255,255,.26);
+      animation: markPulse 1.9s ease-in-out infinite;
+    }
+
+    .brand { font-weight: 800; font-size: 19px; letter-spacing: 0; }
+    .subbrand { color: var(--muted); font-weight: 700; padding-left: 16px; border-left: 1px solid var(--border-strong); }
+    .topbar:after { content: ""; margin-left: auto; }
+
+    .scene {
+      position: absolute;
+      inset: 64px 0 0;
+      padding: 52px 72px 60px;
+      opacity: 0;
+      transform: translateY(22px) scale(.985);
+      pointer-events: none;
+      transition: opacity .72s var(--ease), transform .72s var(--ease);
+      z-index: 2;
+    }
+    .scene.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .scene-inner {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(360px, .92fr) minmax(520px, 1.25fr);
+      gap: 46px;
+      align-items: center;
+      max-width: 1680px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      color: var(--accent-2);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    h1, h2, p { margin: 0; }
+    h1 {
+      font-size: clamp(54px, 5.6vw, 104px);
+      line-height: .92;
+      letter-spacing: 0;
+      max-width: 900px;
+    }
+    h2 {
+      font-size: clamp(42px, 4vw, 76px);
+      line-height: .98;
+      letter-spacing: 0;
+      max-width: 860px;
+    }
+    .lead {
+      margin-top: 24px;
+      color: var(--text-2);
+      font-size: clamp(18px, 1.3vw, 25px);
+      line-height: 1.5;
+      max-width: 720px;
+    }
+    .muted { color: var(--muted); }
+    .accent { color: var(--accent); }
+    .amber { color: var(--accent-2); }
+    .green { color: var(--green); }
+    .red { color: var(--p1); }
+
+    .card, .metric, .node, .lane, .console, .handoff-screen {
+      background: rgba(23,24,23,.88);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-orbit {
+      position: relative;
+      height: min(68vh, 650px);
+      min-height: 460px;
+      display: grid;
+      place-items: center;
+      padding: 44px;
+    }
+    .core {
+      position: relative;
+      width: 270px;
+      height: 270px;
+      border-radius: 50%;
+      border: 1px solid rgba(130,136,246,.42);
+      background:
+        radial-gradient(circle, rgba(130,136,246,.34), rgba(130,136,246,.09) 42%, rgba(23,24,23,.84) 70%);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 78px rgba(130,136,246,.2), inset 0 0 55px rgba(130,136,246,.09);
+      animation: breathe 4s ease-in-out infinite;
+    }
+    .core:before, .core:after {
+      content: "";
+      position: absolute;
+      inset: -46px;
+      border: 1px solid rgba(130,136,246,.19);
+      border-radius: 50%;
+      animation: spin 18s linear infinite;
+    }
+    .core:after {
+      inset: -92px;
+      border-color: rgba(244,184,79,.16);
+      animation-duration: 29s;
+      animation-direction: reverse;
+    }
+    .core-title {
+      text-align: center;
+      font-weight: 900;
+      font-size: 28px;
+      line-height: 1.05;
+    }
+    .core-title span { display: block; color: var(--muted); font-size: 13px; margin-top: 8px; font-weight: 800; }
+    .pill-float {
+      position: absolute;
+      min-width: 158px;
+      padding: 12px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: rgba(23,24,23,.84);
+      font-weight: 800;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      animation: floaty 5s ease-in-out infinite;
+    }
+    .pill-float:before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 18px currentColor; }
+    .pill-float.crash { left: 3%; top: 32%; animation-delay: -.4s; }
+    .pill-float.slow { right: 10%; top: 13%; animation-delay: -1.2s; }
+    .pill-float.owner { right: 2%; bottom: 28%; animation-delay: -2.2s; }
+    .pill-float.proposal { left: 12%; bottom: 12%; animation-delay: -3.1s; }
+    .pill-float.p1:before { background: var(--p1); }
+    .pill-float.p2:before { background: var(--p2); }
+    .pill-float.ok:before { background: var(--green); }
+
+    .problem-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      transform: perspective(1300px) rotateY(-7deg) rotateX(3deg);
+    }
+    .problem-card {
+      min-height: 155px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .problem-card:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      transform: scaleX(0);
+      transform-origin: left;
+      animation: lineFill 6s var(--ease) infinite;
+    }
+    .problem-card:nth-child(1):after { background: var(--p1); }
+    .problem-card:nth-child(2):after { background: var(--p2); animation-delay: .35s; }
+    .problem-card:nth-child(3):after { background: var(--accent); animation-delay: .7s; }
+    .problem-card:nth-child(4):after { background: var(--green); animation-delay: 1.05s; }
+    .problem-card .num { color: var(--accent-2); font-size: 36px; font-weight: 900; }
+    .problem-card h3 { margin: 12px 0 8px; font-size: 21px; }
+    .problem-card p { color: var(--text-2); line-height: 1.45; }
+
+    .flow-wrap {
+      position: relative;
+      height: min(70vh, 650px);
+      min-height: 500px;
+    }
+    .flow-line {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(130,136,246,.35), rgba(244,184,79,.5), transparent);
+      transform: translateY(-50%);
+    }
+    .packet {
+      position: absolute;
+      top: calc(50% - 5px);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 25px rgba(244,184,79,.85);
+      animation: packet 3.8s linear infinite;
+    }
+    .packet:nth-child(2) { animation-delay: .8s; background: var(--accent); box-shadow: 0 0 25px rgba(130,136,246,.85); }
+    .packet:nth-child(3) { animation-delay: 1.6s; background: var(--green); box-shadow: 0 0 25px rgba(85,214,155,.7); }
+    .node {
+      position: absolute;
+      width: 178px;
+      min-height: 120px;
+      padding: 16px;
+      text-align: left;
+      transform: translate(-50%, -50%);
+      transition: transform .3s ease, border-color .3s ease;
+    }
+    .node:hover { transform: translate(-50%, -50%) scale(1.04); border-color: rgba(130,136,246,.62); }
+    .node .icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 13px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 900;
+    }
+    .node h3 { margin: 0 0 6px; font-size: 17px; }
+    .node p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .node.n1 { left: 8%; top: 50%; }
+    .node.n2 { left: 28%; top: 31%; }
+    .node.n3 { left: 48%; top: 68%; }
+    .node.n4 { left: 68%; top: 31%; }
+    .node.n5 { left: 90%; top: 50%; }
+    .node.n2 .icon { background: var(--p2-soft); color: var(--p2); }
+    .node.n3 .icon { background: var(--green-soft); color: var(--green); }
+    .node.n4 .icon { background: var(--p1-soft); color: var(--p1); }
+    .node.n5 .icon { background: var(--accent-soft); color: var(--accent); }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      align-self: stretch;
+      align-items: center;
+    }
+    .arch-card {
+      min-height: 360px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .arch-card:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .12;
+      background: linear-gradient(145deg, var(--accent), transparent 54%);
+    }
+    .arch-card:nth-child(2):before { background: linear-gradient(145deg, var(--p2), transparent 54%); }
+    .arch-card:nth-child(3):before { background: linear-gradient(145deg, var(--green), transparent 54%); }
+    .arch-card:nth-child(4):before { background: linear-gradient(145deg, var(--p1), transparent 54%); }
+    .arch-card > * { position: relative; }
+    .arch-card .kicker { color: var(--muted); font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    .arch-card h3 { margin: 15px 0 10px; font-size: 25px; line-height: 1.08; }
+    .arch-card p { color: var(--text-2); line-height: 1.5; }
+    .arch-card .count { position: absolute; right: 18px; bottom: 14px; font-size: 58px; font-weight: 900; color: rgba(244,244,241,.08); }
+
+    .dashboard-mock {
+      align-self: stretch;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 18px;
+      padding: 18px;
+      transform: perspective(1400px) rotateY(-6deg) rotateX(2deg);
+    }
+    .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .metric { padding: 14px 14px; box-shadow: none; }
+    .metric span { display: block; color: var(--muted); font-weight: 800; font-size: 12px; }
+    .metric strong { display: block; margin-top: 4px; font-size: 25px; }
+    .searchbar {
+      height: 48px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-weight: 700;
+    }
+    .lanes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; min-height: 0; }
+    .lane { padding: 14px; box-shadow: none; overflow: hidden; }
+    .lane h3 { margin: 0 0 14px; display: flex; align-items: center; gap: 10px; font-size: 18px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--p1); }
+    .lane:nth-child(2) .dot { background: var(--p2); }
+    .lane:nth-child(3) .dot { background: var(--p3); }
+    .bug {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: #151715;
+      padding: 15px;
+      margin-bottom: 12px;
+      animation: cardRise 4.4s var(--ease) infinite;
+    }
+    .bug:nth-child(3) { animation-delay: .45s; }
+    .bug strong { display: block; line-height: 1.25; margin-bottom: 10px; }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--accent);
+      background: var(--accent-soft);
+      margin-right: 5px;
+    }
+    .tag.red { color: var(--p1); background: var(--p1-soft); }
+    .tag.yellow { color: var(--p2); background: var(--p2-soft); }
+    .barline { height: 5px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 12px; }
+    .barline i { display: block; height: 100%; width: 78%; background: var(--accent); border-radius: inherit; animation: score 3s var(--ease) infinite; }
+
+    .console {
+      padding: 22px;
+      font-family: ui-monospace, "SF Mono", Consolas, monospace;
+      font-size: 15px;
+      color: var(--text-2);
+      min-height: 320px;
+      overflow: hidden;
+      position: relative;
+    }
+    .console-row { opacity: 0; transform: translateY(10px); animation: typeIn .45s ease forwards; margin: 0 0 13px; }
+    .console-row:nth-child(2) { animation-delay: .8s; }
+    .console-row:nth-child(3) { animation-delay: 1.6s; }
+    .console-row:nth-child(4) { animation-delay: 2.4s; }
+    .console-row:nth-child(5) { animation-delay: 3.2s; }
+    .console-row b { color: var(--green); font-weight: 900; }
+    .console-row .cmd { color: var(--accent-2); }
+
+    .handoff {
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+    .handoff .scene-inner {
+      display: block;
+      height: auto;
+      max-width: 1100px;
+    }
+    .handoff-screen {
+      margin: 34px auto 0;
+      width: min(880px, 70vw);
+      height: 210px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .handoff-screen:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(130,136,246,.18), transparent);
+      transform: translateX(-100%);
+      animation: scan 2.5s ease-in-out infinite;
+    }
+    .handoff-screen strong {
+      position: relative;
+      font-size: clamp(34px, 4.2vw, 72px);
+      line-height: 1;
+    }
+
+    @keyframes gridDrift { to { background-position: 0 80px, 80px 0; } }
+    @keyframes noiseMove { to { transform: translate3d(4%, -3%, 0); } }
+    @keyframes markPulse { 0%,100% { transform: scale(.86); opacity: .3; } 50% { transform: scale(1.05); opacity: .9; } }
+    @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+    @keyframes lineFill { 0% { transform: scaleX(0); opacity: .7; } 45%,80% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(0); transform-origin: right; opacity: .7; } }
+    @keyframes packet { from { left: 7%; opacity: 0; } 7% { opacity: 1; } 92% { opacity: 1; } to { left: 92%; opacity: 0; } }
+    @keyframes cardRise { 0%,100% { transform: translateY(0); border-color: var(--border); } 46% { transform: translateY(-7px); border-color: rgba(130,136,246,.4); } }
+    @keyframes score { 0% { width: 0; } 55%,100% { width: 78%; } }
+    @keyframes typeIn { to { opacity: 1; transform: translateY(0); } }
+    @keyframes scan { to { transform: translateX(100%); } }
+
+    @media (max-width: 1100px) {
+      .scene { padding: 36px; }
+      .scene-inner { grid-template-columns: 1fr; gap: 24px; }
+      .hero-orbit, .flow-wrap { display: none; }
+      .architecture { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="grid"></div>
+    <div class="noise"></div>
+
+    <header class="topbar">
+      <div class="cortex-mark" aria-hidden="true"><i></i></div>
+      <div class="brand">Cortex Triage</div>
+      <div class="subbrand">Lemma Pod</div>
+    </header>
+
+    <section class="scene active" data-title="Opening">
+      <div class="scene-inner">
+        <div>
+          <div class="eyebrow">Agentic incident response</div>
+          <h1>Bug triage should not be a human bottleneck.</h1>
+          <p class="lead">Cortex turns a messy report into severity, ownership, a suggested fix, and an incident trail.</p>
+        </div>
+        <div class="hero-orbit">
+          <div class="pill-float p1 crash">Production crash</div>
+          <div class="pill-float p2 slow">Slow dashboard</div>
+          <div class="pill-float ok owner">Likely owner</div>
+          <div class="pill-float proposal">Fix proposal</div>
+          <div class="core"><div class="core-title">Cortex<br />Triage<span>built on Lemma</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" data-title="Problem">
+      <div class="scene-inner">
+        <div>
+          <div class="eyebrow">Problem statement</div>
+          <h2>Engineering teams drown in unstructured bug reports.</h2>
+          <p class="lead">Severity is inconsistent, owners are guessed manually, release notes are an afterthought, and P1s wait for someone to notice.</p>
+        </div>
+        <div class="problem-board">
+          <div class="card problem-card"><div class="num">01</div><h3>Manual triage</h3><p>Every issue needs reading, classification, severity scoring, and context gathering.</p></div>
+          <div class="card problem-card"><div class="num">02</div><h3>Inconsistent priority</h3><p>One person's P1 becomes another person's backlog item.</p></div>
+          <div class="card problem-card"><div class="num">03</div><h3>Slow ownership</h3><p>The right engineer is often found by memory, not by repository evidence.</p></div>
+          <div class="card problem-card"><div class="num">04</div><h3>Weak follow-through</h3><p>Incidents, acknowledgements, fixes, and release notes get split across tools.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" data-title="Product">
+      <div class="scene-inner">
+        <div>
+          <div class="eyebrow">Product</div>
+          <h2>One workflow from report to action.</h2>
+          <p class="lead">A report enters Cortex. Lemma agents classify and reason. Functions persist, alert, suggest owners, and prepare safe next actions.</p>
+        </div>
+        <div class="flow-wrap">
+          <div class="flow-line"></div>
+          <div class="packet"></div><div class="packet"></div><div class="packet"></div>
+          <div class="node n1"><div class="icon">1</div><h3>Intake</h3><p>GitHub, Slack, Jira, email, or manual report.</p></div>
+          <div class="node n2"><div class="icon">2</div><h3>Triage agent</h3><p>Classifies type, severity, impact, urgency.</p></div>
+          <div class="node n3"><div class="icon">3</div><h3>Fix suggester</h3><p>Drafts a fix path, risk, effort, confidence.</p></div>
+          <div class="node n4"><div class="icon">4</div><h3>Incident layer</h3><p>P1s create incidents and alerts.</p></div>
+          <div class="node n5"><div class="icon">5</div><h3>Board</h3><p>Human approves the actions that matter.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" data-title="How We Built It">
+      <div class="scene-inner">
+        <div>
+          <div class="eyebrow">How we built it</div>
+          <h2>Lemma is the operating system for the prototype.</h2>
+          <p class="lead">Agents do judgment. Functions do deterministic rules. Workflows coordinate the chain. Tables keep the source of truth.</p>
+        </div>
+        <div class="architecture">
+          <div class="card arch-card"><div class="kicker">Reasoning</div><h3>Agents</h3><p>Triage, fix suggestion, and release-note writing with structured outputs.</p><div class="count">3</div></div>
+          <div class="card arch-card"><div class="kicker">Rules</div><h3>Functions</h3><p>Persist rows, call GitHub, open incidents, ack alerts, create Jira tickets, post Slack, and propose safe fix PRs.</p><div class="count">17</div></div>
+          <div class="card arch-card"><div class="kicker">State</div><h3>Tables</h3><p>Issues, bugs, fixes, incidents, configs, and release notes as queryable product memory.</p><div class="count">8</div></div>
+          <div class="card arch-card"><div class="kicker">Orchestration</div><h3>Workflows</h3><p>Manual intake, automatic GitHub polling, release notes, and scheduled incident escalation.</p><div class="count">4</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" data-title="Proof">
+      <div class="scene-inner">
+        <div>
+          <div class="eyebrow">Working prototype</div>
+          <h2>From raw text to an operator board.</h2>
+          <p class="lead">The core triage path runs end-to-end: report, severity, reasoning, fix suggestion, incident state, and dashboard visibility.</p>
+          <div class="console" style="margin-top:28px">
+            <div class="console-row"><span class="cmd">$</span> workflow run triage-issue</div>
+            <div class="console-row"><b>OK</b> classified checkout outage as P1 crash</div>
+            <div class="console-row"><b>OK</b> persisted issue, bug, fix rows</div>
+            <div class="console-row"><b>OK</b> opened incident and suggested owner</div>
+            <div class="console-row"><b>READY</b> operator board live at cortex-board</div>
+          </div>
+        </div>
+        <div class="card dashboard-mock">
+          <div class="metrics">
+            <div class="metric"><span>Open bugs</span><strong>8</strong></div>
+            <div class="metric"><span>Critical P1</span><strong class="red">2</strong></div>
+            <div class="metric"><span>High P2</span><strong class="amber">5</strong></div>
+            <div class="metric"><span>Low P3</span><strong>1</strong></div>
+            <div class="metric"><span>Confidence</span><strong class="green">88%</strong></div>
+          </div>
+          <div class="searchbar">Search bugs, types, fixes...</div>
+          <div class="lanes">
+            <div class="lane"><h3><i class="dot"></i>P1 Critical</h3><div class="bug"><strong>Checkout returns 500 for all users</strong><span class="tag red">Incident</span><span class="tag">Crash</span><div class="barline"><i></i></div></div><div class="bug"><strong>Payments fail after deploy</strong><span class="tag red">P1</span><span class="tag">Conf 97%</span><div class="barline"><i></i></div></div></div>
+            <div class="lane"><h3><i class="dot"></i>P2 High</h3><div class="bug"><strong>Dashboard takes 12s for 10k orders</strong><span class="tag yellow">Performance</span><span class="tag">Owner</span><div class="barline"><i></i></div></div><div class="bug"><strong>Export drops final row</strong><span class="tag yellow">Data</span><span class="tag">Fix</span><div class="barline"><i></i></div></div></div>
+            <div class="lane"><h3><i class="dot"></i>P3 Low</h3><div class="bug"><strong>Typo in settings page</strong><span class="tag">UI</span><span class="tag">P3</span><div class="barline"><i></i></div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene handoff" data-title="Demo">
+      <div class="scene-inner">
+        <div class="eyebrow" style="justify-content:center">Live demo handoff</div>
+        <h2>Here is the demo.</h2>
+        <p class="lead" style="margin-left:auto;margin-right:auto">Now we will run the Cortex Board and show the full flow inside Lemma: new report, AI triage, incident creation, owner suggestion, and operator actions.</p>
+        <div class="handoff-screen"><strong>Switch to Cortex Board</strong></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const scenes = Array.from(document.querySelectorAll(".scene"));
+    const total = 65;
+    const cuts = [0, 10, 22, 35, 48, 58];
+    let start = performance.now();
+    let paused = false;
+    let pausedAt = 0;
+    let manualScene = null;
+
+    function sceneFor(t) {
+      let idx = 0;
+      for (let i = 0; i < cuts.length; i++) if (t >= cuts[i]) idx = i;
+      return Math.min(idx, scenes.length - 1);
+    }
+
+    function showScene(idx) {
+      scenes.forEach((s, i) => s.classList.toggle("active", i === idx));
+    }
+
+    function tick(now) {
+      if (!paused) {
+        const t = ((now - start) / 1000) % total;
+        const idx = manualScene === null ? sceneFor(t) : manualScene;
+        showScene(idx);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        paused = !paused;
+        if (paused) pausedAt = performance.now();
+        else start += performance.now() - pausedAt;
+      }
+      if (e.key.toLowerCase() === "r") {
+        start = performance.now();
+        manualScene = null;
+        paused = false;
+      }
+      if (e.key === "ArrowRight") {
+        manualScene = manualScene === null ? sceneFor((performance.now() - start) / 1000) : manualScene;
+        manualScene = Math.min(scenes.length - 1, manualScene + 1);
+        showScene(manualScene);
+      }
+      if (e.key === "ArrowLeft") {
+        manualScene = manualScene === null ? sceneFor((performance.now() - start) / 1000) : manualScene;
+        manualScene = Math.max(0, manualScene - 1);
+        showScene(manualScene);
+      }
+    });
+
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

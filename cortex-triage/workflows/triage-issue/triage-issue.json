@@ -9,7 +9,7 @@
         "properties": {
           "title": { "type": "string", "title": "Title" },
           "body": { "type": "string", "title": "Description", "default": "" },
-          "source": { "type": "string", "title": "Source", "enum": ["github", "slack", "email", "manual"], "default": "manual" },
+          "source": { "type": "string", "title": "Source", "enum": ["github", "jira", "slack", "email", "manual"], "default": "manual" },
           "url": { "type": "string", "title": "Link", "default": "" },
           "reporter": { "type": "string", "title": "Reporter", "default": "" },
           "external_id": { "type": "string", "title": "External id", "default": "" }
@@ -24,8 +24,8 @@
           "body": { "type": "expression", "value": "intake.body" }
         } } },
 
-    { "id": "suggest", "type": "AGENT", "label": "Suggest a fix",
-      "config": { "agent_name": "fix-suggester",
+    { "id": "suggest", "type": "FUNCTION", "label": "Suggest a fix",
+      "config": { "function_name": "suggest_fix",
         "input_mapping": {
           "title": { "type": "expression", "value": "intake.title" },
           "body": { "type": "expression", "value": "intake.body" },
@@ -49,6 +49,9 @@
           "is_duplicate": { "type": "expression", "value": "triage.is_duplicate" },
           "duplicate_of": { "type": "expression", "value": "triage.duplicate_of" },
           "reasoning": { "type": "expression", "value": "triage.reasoning" },
+          "is_production_code": { "type": "expression", "value": "triage.is_production_code" },
+          "affected_service_count": { "type": "expression", "value": "triage.affected_service_count" },
+          "fix_complexity": { "type": "expression", "value": "triage.fix_complexity" },
           "fix_title": { "type": "expression", "value": "suggest.fix_title" },
           "fix_suggestion": { "type": "expression", "value": "suggest.fix_suggestion" },
           "fix_code": { "type": "expression", "value": "suggest.fix_code" },
@@ -79,6 +82,18 @@
           "bug_id": { "type": "expression", "value": "persist.bug_id" }
         } } },
 
+    { "id": "jira", "type": "FUNCTION", "label": "Open Jira ticket",
+      "config": { "function_name": "create_jira_ticket",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
+    { "id": "notify", "type": "FUNCTION", "label": "Notify owner on Slack",
+      "config": { "function_name": "notify_owner_slack",
+        "input_mapping": {
+          "bug_id": { "type": "expression", "value": "persist.bug_id" }
+        } } },
+
     { "id": "end", "type": "END", "label": "Triaged" }
   ],
   "edges": [
@@ -86,9 +101,11 @@
     { "id": "e2", "source": "triage", "target": "suggest" },
     { "id": "e3", "source": "suggest", "target": "persist" },
     { "id": "e4", "source": "persist", "target": "owner" },
-    { "id": "e5", "source": "owner", "target": "incident" },
-    { "id": "e6", "source": "incident", "target": "auto_resolve" },
-    { "id": "e7", "source": "auto_resolve", "target": "end" }
+    { "id": "e5", "source": "owner", "target": "jira" },
+    { "id": "e6", "source": "jira", "target": "notify" },
+    { "id": "e7", "source": "notify", "target": "incident" },
+    { "id": "e8", "source": "incident", "target": "auto_resolve" },
+    { "id": "e9", "source": "auto_resolve", "target": "end" }
   ],
   "visibility": "POD"
 }

@@ -2,8 +2,9 @@
   "name": "triage-agent",
   "description": "Classifies an incoming bug report, scores impact and urgency, and assigns a P1/P2/P3 severity with reasoning.",
   "instruction": { "$file": "instruction.md" },
-  "toolsets": ["POD"],
+  "toolsets": [],
   "visibility": "POD",
+  "agent_runtime": { "profile_id": "system:lemma", "model_name": "deepseek-v4-flash" },
   "input_schema": {
     "type": "object",
     "properties": {
@@ -22,9 +23,12 @@
       "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
       "is_duplicate": { "type": "boolean" },
       "duplicate_of": { "type": "string" },
-      "reasoning": { "type": "string" }
+      "reasoning": { "type": "string" },
+      "is_production_code": { "type": "boolean" },
+      "affected_service_count": { "type": "integer", "minimum": 0, "maximum": 1000 },
+      "fix_complexity": { "type": "string", "enum": ["trivial", "moderate", "major"] }
     },
-    "required": ["bug_type", "severity", "impact_score", "urgency_score", "confidence", "reasoning"]
+    "required": ["bug_type", "severity", "impact_score", "urgency_score", "confidence", "reasoning", "is_duplicate", "duplicate_of", "is_production_code", "affected_service_count", "fix_complexity"]
   },
   "permissions": { "grants": [] }
 }

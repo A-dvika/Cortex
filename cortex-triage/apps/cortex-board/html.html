@@ -6,28 +6,29 @@
   <title>Cortex-Triage — Operator Board</title>
   <style>
     :root {
-      --bg: #f7f6f3;
-      --surface: #ffffff;
-      --surface-2: #f1efea;
-      --border: #ebe8e1;
-      --border-strong: #dcd7cc;
-      --text: #37352f;
-      --text-2: #787774;
-      --muted: #9b9a96;
-      --accent: #635bff;
-      --accent-2: #8a83ff;
-      --accent-soft: rgba(99,91,255,0.09);
-      --p1: #d1453d; --p1-soft: rgba(209,69,61,0.09); --p1-wash: rgba(209,69,61,0.045);
-      --p2: #c46c11; --p2-soft: rgba(196,108,17,0.11); --p2-wash: rgba(196,108,17,0.05);
-      --p3: #84817a; --p3-soft: rgba(132,129,122,0.13); --p3-wash: rgba(132,129,122,0.05);
-      --green: #15835f; --green-soft: rgba(21,131,95,0.10);
-      --radius: 18px; --radius-sm: 14px;
-      --shadow: 0 10px 28px rgba(55,53,47,0.07);
-      --shadow-lg: 0 18px 44px rgba(55,53,47,0.14);
+      --bg: #0b0d0b;
+      --surface: #171817;
+      --surface-2: #202120;
+      --surface-3: #252625;
+      --border: #292b2a;
+      --border-strong: #383a38;
+      --text: #f4f4f1;
+      --text-2: #b8b8b2;
+      --muted: #85857f;
+      --accent: #8288f6;
+      --accent-2: #f4b84f;
+      --accent-soft: rgba(130,136,246,0.20);
+      --p1: #ff6f61; --p1-soft: rgba(255,111,97,0.14); --p1-wash: rgba(255,111,97,0.055);
+      --p2: #f4b84f; --p2-soft: rgba(244,184,79,0.16); --p2-wash: rgba(244,184,79,0.055);
+      --p3: #9da0a0; --p3-soft: rgba(157,160,160,0.14); --p3-wash: rgba(157,160,160,0.045);
+      --green: #55d69b; --green-soft: rgba(85,214,155,0.13);
+      --radius: 8px; --radius-sm: 6px;
+      --shadow: 0 14px 34px rgba(0,0,0,0.24);
+      --shadow-lg: 0 22px 60px rgba(0,0,0,0.42);
       font-synthesis: none;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; }
+    html, body { margin: 0; height: 100%; overflow: hidden; }
     body {
       background: var(--bg);
       color: var(--text);
@@ -38,122 +39,150 @@
     .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
     button { font: inherit; cursor: pointer; }
     ::-webkit-scrollbar { height: 10px; width: 10px; }
-    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 20px; }
+    ::-webkit-scrollbar-thumb { background: #777872; border-radius: 20px; }
     ::-webkit-scrollbar-track { background: transparent; }
 
     /* ---------- shell ---------- */
-    .app { min-height: 100%; display: flex; flex-direction: column; max-width: 1280px; margin: 0 auto; }
+    .app { height: 100vh; display: grid; grid-template-rows: 64px minmax(0, 1fr); overflow: hidden; }
     .topbar {
       display: flex; align-items: center; gap: 16px;
-      padding: 20px 28px 6px;
+      padding: 0 28px; border-bottom: 1px solid var(--border);
+      background: rgba(11,13,11,0.96); position: sticky; top: 0; z-index: 20;
     }
     .brand { display: flex; align-items: center; gap: 12px; }
     .logo {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: var(--accent);
-      display: grid; place-items: center; color: #ffffff; font-weight: 800; font-size: 17px;
-      box-shadow: 0 4px 12px rgba(99,91,255,0.30);
+      position: relative; width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), #6f74ee);
+      display: block; color: #ffffff;
+      box-shadow: 0 0 26px rgba(130,136,246,.25), inset 0 0 0 1px rgba(255,255,255,.18);
     }
-    .brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.1px; }
-    .brand p { margin: 0; font-size: 12.5px; color: var(--muted); }
+    .logo::before, .logo::after, .logo span { content: ""; position: absolute; border-radius: 50%; }
+    .logo::before { inset: 8px; border: 2px solid rgba(255,255,255,.9); }
+    .logo::after { inset: 14px; background: #ffffff; box-shadow: 0 0 14px rgba(255,255,255,.62); }
+    .logo span { inset: 4px; border: 1px solid rgba(255,255,255,.32); }
+    .brand h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0; }
+    .brand p { margin: 0 0 0 14px; padding-left: 18px; border-left: 1px solid var(--border); font-size: 14px; color: var(--muted); font-weight: 600; }
     .spacer { flex: 1; }
-    .who { font-size: 13px; color: var(--text-2); display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; background: var(--surface); border-radius: 999px; border: 1px solid var(--border); }
+    .top-search {
+      flex: 0 1 480px; display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border-strong);
+      border-radius: 8px; color: var(--muted); padding: 9px 13px; margin-left: auto;
+    }
+    .top-search input { width: 100%; background: transparent; border: 0; outline: 0; color: var(--text); font-size: 14px; }
+    .top-search input::placeholder, .search input::placeholder { color: #6f706b; }
+    .who { font-size: 13px; color: var(--text-2); display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; background: transparent; border-radius: 999px; border: 1px solid var(--border); }
     .who .av { width: 20px; height: 20px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 10.5px; font-weight: 800; }
+    .shell { min-height: 0; display: grid; grid-template-columns: 72px minmax(0, 1fr); overflow: hidden; }
+    .side-nav { border-right: 1px solid var(--border); padding: 14px 10px; overflow: auto; background: #0f110f; }
+    .nav-section { color: #6f706b; font-size: 12px; font-weight: 800; letter-spacing: .03em; margin: 0 0 12px 9px; text-transform: uppercase; }
+    .main { min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .content-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 18px; border-bottom: 1px solid rgba(41,43,42,.72); background: #101210; }
+    .eyebrow { display:flex; align-items:center; gap:10px; color: var(--accent-2); font-size:12px; font-weight:800; text-transform:uppercase; }
+    .eyebrow .sq { width:30px; height:30px; border:1px solid var(--border-strong); border-radius:8px; display:grid; place-items:center; background:var(--surface); }
+    .content-head h2 { margin: 8px 0 0; font-size: 24px; line-height: 1; letter-spacing: 0; }
+    .content-head p { margin: 0; max-width: 520px; color: var(--text-2); font-size: 13px; line-height: 1.45; text-align: right; }
+    .right-rail { display: none; }
 
     .icon-btn {
-      width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
-      background: var(--surface); display: grid; place-items: center; font-size: 16px;
+      width: 38px; height: 38px; border-radius: 8px; border: 1px solid transparent;
+      background: transparent; color: var(--text-2); display: grid; place-items: center; font-size: 16px;
       transition: background .15s ease, border-color .15s ease;
     }
     .icon-btn:hover { background: var(--surface-2); border-color: var(--border-strong); }
 
     .btn {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 9px 15px; border-radius: 11px; border: 1px solid var(--border);
+      padding: 9px 15px; border-radius: 8px; border: 1px solid var(--border);
       background: var(--surface); color: var(--text); font-size: 13.5px; font-weight: 600;
       transition: transform .08s ease, background .15s ease, border-color .15s ease;
     }
     .btn:hover { background: var(--surface-2); border-color: var(--border-strong); }
     .btn:active { transform: translateY(1px); }
-    .btn.primary { background: var(--accent); border: none; color: #ffffff; box-shadow: 0 4px 14px rgba(99,91,255,0.30); }
-    .btn.primary:hover { background: #564fe0; }
+    .btn.primary { background: var(--accent); border: none; color: #ffffff; box-shadow: 0 8px 24px rgba(130,136,246,0.22); }
+    .btn.primary:hover { background: #747bf0; }
     .btn.ghost { background: transparent; border-color: transparent; }
     .btn.ghost:hover { background: var(--surface-2); }
     .btn[disabled] { opacity: .5; cursor: not-allowed; }
 
     /* ---------- tabs ---------- */
-    .tabbar { display: flex; gap: 4px; padding: 14px 28px 0; border-bottom: 1px solid var(--border); }
+    .tabbar { display: flex; flex-direction: column; gap: 8px; padding: 0; }
     .tab-btn {
-      padding: 9px 4px; margin-right: 22px; background: transparent; border: none; border-bottom: 2px solid transparent;
-      color: var(--text-2); font-size: 14px; font-weight: 600; transition: color .15s ease, border-color .15s ease;
+      width: 50px; height: 44px; display: grid; place-items: center; padding: 0; background: transparent; border: none; border-radius: 8px;
+      color: var(--muted); font-size: 0; font-weight: 700; transition: color .15s ease, background .15s ease;
     }
     .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+    .tab-btn.active { color: #ffffff; background: var(--accent); }
+    .nav-list { display: none; }
+    .nav-section { display: none; }
 
     /* ---------- metrics ---------- */
-    .metrics { display: flex; gap: 14px; padding: 22px 28px 4px; flex-wrap: wrap; }
+    .board-page { min-height: 0; flex: 1; display: grid; grid-template-rows: auto auto minmax(0, 1fr); overflow: hidden; }
+    .metrics { display: grid; grid-template-columns: repeat(5, minmax(118px, 1fr)); gap: 10px; padding: 12px 18px 8px; }
     .metric {
-      flex: 1; min-width: 160px;
       background: var(--surface);
       border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 16px 18px; display: flex; align-items: center; gap: 13px;
+      padding: 11px 12px; display: flex; align-items: center; gap: 10px; min-width: 0;
     }
-    .metric .badge { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; font-size: 17px; flex: none; }
-    .metric .k { font-size: 12px; color: var(--muted); font-weight: 600; }
-    .metric .v { font-size: 24px; font-weight: 750; letter-spacing: -0.5px; line-height: 1.15; }
+    .metric .badge { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 16px; flex: none; }
+    .metric .k { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .metric .v { font-size: 21px; font-weight: 750; letter-spacing: 0; line-height: 1.1; }
     .pill { display: inline-flex; align-items:center; gap:6px; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
     .pill.p1 { color: var(--p1); background: var(--p1-soft); }
     .pill.p2 { color: var(--p2); background: var(--p2-soft); }
     .pill.p3 { color: var(--p3); background: var(--p3-soft); }
 
     /* ---------- toolbar ---------- */
-    .toolbar { display: flex; align-items: center; gap: 10px; padding: 18px 28px 6px; flex-wrap: wrap; }
+    .toolbar { display: flex; align-items: center; gap: 10px; padding: 8px 18px 12px; flex-wrap: wrap; background: var(--bg); z-index: 5; }
     .search {
       display: flex; align-items: center; gap: 8px; flex: 1; min-width: 220px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 9px 13px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 13px;
     }
     .search input { background: transparent; border: none; outline: none; color: var(--text); width: 100%; font-size: 14px; }
     .chips { display: flex; gap: 6px; }
     .chip {
-      padding: 8px 13px; border-radius: 999px; border: 1px solid var(--border);
+      padding: 8px 13px; border-radius: 8px; border: 1px solid var(--border);
       background: var(--surface); color: var(--text-2); font-size: 12.5px; font-weight: 600;
     }
-    .chip.active { color: var(--accent); border-color: rgba(99,91,255,0.35); background: var(--accent-soft); }
+    .chip.active { color: #ffffff; border-color: rgba(130,136,246,0.55); background: var(--accent-soft); }
 
     /* ---------- board ---------- */
-    .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 14px 28px 48px; align-items: start; }
-    .col { min-height: 160px; }
-    .col-head { display: flex; align-items: center; gap: 9px; padding: 4px 4px 14px; }
+    .board { min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(300px, 1fr)); gap: 14px; padding: 0 18px 18px; overflow: hidden; align-items: stretch; }
+    .col { min-height: 0; display: flex; flex-direction: column; background: rgba(23,24,23,0.45); border: 1px solid rgba(41,43,42,.75); border-radius: 10px; overflow: hidden; }
+    .col-head { flex: none; display: flex; align-items: center; gap: 9px; padding: 12px 14px; background: rgba(32,33,32,.72); border-bottom: 1px solid var(--border); }
     .col-head .name { font-weight: 700; font-size: 13.5px; }
     .col-head .count { margin-left: auto; font-size: 12px; color: var(--muted); background: var(--surface-2); padding: 2px 9px; border-radius: 999px; }
     .col-dot { width: 8px; height: 8px; border-radius: 50%; }
     .col.p1 .col-dot { background: var(--p1); } .col.p2 .col-dot { background: var(--p2); } .col.p3 .col-dot { background: var(--p3); }
-    .col-body { display: flex; flex-direction: column; gap: 12px; }
+    .col-body { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 12px; }
 
     .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 16px 17px;
-      transition: box-shadow .15s ease, border-color .15s ease;
+      border-radius: var(--radius); padding: 12px 13px;
+      transition: box-shadow .15s ease, border-color .15s ease; flex: none;
     }
-    .card.p1 { background: linear-gradient(180deg, var(--p1-wash), var(--surface) 65%); border-color: rgba(209,69,61,0.16); }
-    .card.p2 { background: linear-gradient(180deg, var(--p2-wash), var(--surface) 65%); border-color: rgba(196,108,17,0.16); }
-    .card.p3 { background: linear-gradient(180deg, var(--p3-wash), var(--surface) 65%); border-color: rgba(132,129,122,0.14); }
+    .card.p1 { background: linear-gradient(180deg, var(--p1-wash), var(--surface) 65%); border-color: rgba(255,111,97,0.20); }
+    .card.p2 { background: linear-gradient(180deg, var(--p2-wash), var(--surface) 65%); border-color: rgba(244,184,79,0.22); }
+    .card.p3 { background: linear-gradient(180deg, var(--p3-wash), var(--surface) 65%); border-color: rgba(157,160,160,0.16); }
     .card:hover { box-shadow: var(--shadow); border-color: var(--border-strong); }
     .card.flash { animation: flash 1.8s ease; }
     @keyframes flash { 0% { box-shadow: 0 0 0 2px var(--accent), var(--shadow); } 100% { box-shadow: none; } }
-    .card .title { font-weight: 650; font-size: 14.5px; line-height: 1.4; }
-    .card .meta { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .card .title { font-weight: 680; font-size: 13.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card .meta { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
     .tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); text-transform: capitalize; }
     .tag.type { color: var(--accent); background: var(--accent-soft); }
     .tag.risk-high { color: var(--p1); background: var(--p1-soft); }
     .tag.risk-medium { color: var(--p2); background: var(--p2-soft); }
     .tag.risk-low { color: var(--green); background: var(--green-soft); }
-    .scores { display: flex; gap: 14px; margin-top: 12px; }
+    .compact-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 9px; color: var(--muted); font-size: 11.5px; }
+    .compact-row .src { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-strip { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .scores { display: flex; gap: 10px; margin-top: 10px; }
     .score { flex: 1; }
     .score .lab { font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; font-weight: 600; }
     .track { height: 5px; border-radius: 999px; background: var(--surface-2); margin-top: 5px; overflow: hidden; }
     .track > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
-    .card details { margin-top: 12px; }
+    .card details { margin-top: 10px; }
+    .card details.card-actions { border-top: 1px solid var(--border); padding-top: 8px; }
     .card summary { cursor: pointer; font-size: 12px; color: var(--text-2); list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; font-weight: 600; }
     .card summary::-webkit-details-marker { display: none; }
     .card summary::before {
@@ -167,11 +196,11 @@
     .fix { margin-top: 10px; padding: 12px; background: var(--surface-2); border-radius: 12px; }
     .fix .fx-title { font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
     .fix .fx-body { font-size: 12.5px; color: var(--text-2); margin-top: 6px; line-height: 1.55; }
-    pre { margin: 9px 0 0; padding: 11px; background: #fbfaf8; border: 1px solid var(--border); border-radius: 10px; overflow: auto; font-size: 11.5px; color: #4a473f; max-height: 230px; }
+    pre { margin: 9px 0 0; padding: 11px; background: #101110; border: 1px solid var(--border); border-radius: 8px; overflow: auto; font-size: 11.5px; color: var(--text-2); max-height: 230px; }
     .dup { font-size: 11px; color: var(--p2); margin-top: 9px; font-weight: 600; }
     .src { font-size: 11.5px; color: var(--muted); margin-top: 9px; }
     .src a { color: var(--accent); text-decoration: none; }
-    .panel { margin-top: 10px; padding: 12px; border-radius: 12px; }
+    .panel { margin-top: 8px; padding: 10px; border-radius: 8px; }
     .panel.soft { background: var(--surface-2); }
 
     /* ---------- skeleton / empty ---------- */
@@ -180,28 +209,28 @@
     .empty { text-align: center; color: var(--muted); font-size: 13px; padding: 30px 10px; background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--radius); }
 
     /* ---------- modal ---------- */
-    .scrim { position: fixed; inset: 0; background: rgba(40,38,33,0.30); backdrop-filter: blur(3px); z-index: 50; display: grid; place-items: center; padding: 20px; }
-    .modal { width: 100%; max-width: 520px; background: var(--surface); border-radius: 20px; box-shadow: var(--shadow-lg); overflow: hidden; }
+    .scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.56); backdrop-filter: blur(3px); z-index: 50; display: grid; place-items: center; padding: 20px; }
+    .modal { width: 100%; max-width: 520px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 12px; box-shadow: var(--shadow-lg); overflow: hidden; }
     .modal h2 { margin: 0; font-size: 16px; font-weight: 700; }
     .modal .head { padding: 20px 22px 16px; display: flex; align-items: center; gap: 10px; }
-    .modal .body { padding: 0 22px 18px; display: flex; flex-direction: column; gap: 15px; }
+    .modal .body { padding: 0 22px 18px; display: flex; flex-direction: column; gap: 15px; max-height: min(68vh, 620px); overflow: auto; }
     .modal .foot { padding: 16px 22px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
     .field label { font-size: 12.5px; color: var(--text-2); font-weight: 600; display: block; margin-bottom: 6px; }
     .field input, .field textarea, .field select {
       width: 100%; background: var(--surface-2); border: 1px solid transparent; color: var(--text);
-      border-radius: 11px; padding: 10px 13px; font-size: 14px; outline: none; resize: vertical;
+      border-radius: 8px; padding: 10px 13px; font-size: 14px; outline: none; resize: vertical;
     }
     .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: var(--surface); }
 
     /* ---------- FAB ---------- */
     .fab {
-      position: fixed; right: 28px; bottom: 28px; z-index: 40;
-      width: 56px; height: 56px; border-radius: 50%; border: none;
+      position: fixed; right: 24px; bottom: 24px; z-index: 40;
+      width: 52px; height: 52px; border-radius: 50%; border: none;
       background: var(--accent); color: #fff; font-size: 26px; font-weight: 400;
       display: grid; place-items: center; box-shadow: var(--shadow-lg);
       transition: transform .12s ease, background .15s ease;
     }
-    .fab:hover { background: #564fe0; transform: translateY(-2px); }
+    .fab:hover { background: #747bf0; transform: translateY(-2px); }
     .fab:active { transform: translateY(0); }
 
     /* ---------- stepper ---------- */
@@ -215,9 +244,9 @@
     @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--accent-soft); } 50% { box-shadow: 0 0 0 6px transparent; } }
 
     /* ---------- releases page ---------- */
-    .releases { padding: 18px 28px 48px; display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
+    .releases { min-height: 0; overflow: auto; padding: 18px 28px 48px; display: flex; flex-direction: column; gap: 16px; }
     .compile-row { display: flex; gap: 10px; }
-    .compile-row input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 10px 13px; font-size: 14px; outline: none; color: var(--text); }
+    .compile-row input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 13px; font-size: 14px; outline: none; color: var(--text); }
     .compile-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
     .note-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 19px; }
 
@@ -232,7 +261,31 @@
     @keyframes rot { to { transform: rotate(360deg); } }
     .md { font-size: 13px; color: var(--text-2); line-height: 1.65; white-space: pre-wrap; }
 
-    @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+    @media (max-width: 1180px) {
+      .shell { grid-template-columns: 64px minmax(0, 1fr); }
+      .fab { right: 24px; }
+      .topbar { padding: 0 28px; }
+      .top-search { display: none; }
+      .board { overflow-x: auto; grid-template-columns: repeat(3, minmax(300px, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      html, body { overflow: auto; }
+      .app { display: block; height: auto; min-height: 100vh; overflow: visible; }
+      .shell { display: block; }
+      .side-nav { border-right: 0; border-bottom: 1px solid var(--border); padding: 10px 18px; }
+      .tabbar, .nav-list { flex-direction: row; overflow-x: auto; padding-bottom: 8px; }
+      .tab-btn { width: 48px; height: 40px; border-radius: 8px; white-space: nowrap; }
+      .nav-section, .nav-list { display: none; }
+      .main, .board-page { overflow: visible; display: block; }
+      .content-head { display: block; padding: 22px 18px 14px; }
+      .content-head p { text-align: left; margin-top: 10px; }
+      .metrics, .toolbar, .board, .releases { padding-left: 18px; padding-right: 18px; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .board { display: flex; overflow-x: auto; padding-bottom: 24px; }
+      .col { min-width: 310px; max-height: 72vh; }
+      .content-head h2 { font-size: 42px; }
+      .content-head p { font-size: 17px; }
+    }
   </style>
 </head>
 <body>
@@ -296,7 +349,7 @@
 
   // ---------- state ----------
   var client = null;
-  var S = { user: null, bugs: [], fixByBug: {}, issueById: {}, incidentByBug: {}, notes: [], cfg: null, alertCfg: null, filter: "all", q: "", loading: true, newest: null, tab: "board" };
+  var S = { user: null, bugs: [], fixByBug: {}, issueById: {}, incidentByBug: {}, notes: [], cfg: null, alertCfg: null, sourceCfg: null, filter: "all", q: "", loading: true, newest: null, tab: "board" };
 
   async function boot() {
     try {
@@ -325,12 +378,24 @@
       S.incidentByBug = {};
       incidents.forEach(function (inc) { if (inc.bug_id && !S.incidentByBug[inc.bug_id]) S.incidentByBug[inc.bug_id] = inc; });
     } catch (e) { toast("Load failed: " + (e.message || e), "err"); }
-    S.bugs = bugs.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
     S.fixByBug = {}; fixes.forEach(function (f) { if (!S.fixByBug[f.bug_id]) S.fixByBug[f.bug_id] = f; });
     S.issueById = {}; issues.forEach(function (i) { S.issueById[i.id] = i; });
     S.notes = notes.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
     try { var cf = items(await client.records.list("github_config", { limit: 1 })); S.cfg = cf[0] || null; } catch (e) { S.cfg = null; }
     try { var af = items(await client.records.list("alert_config", { limit: 1 })); S.alertCfg = af[0] || null; } catch (e) { S.alertCfg = null; }
+    try { var sf = items(await client.records.list("source_config", { limit: 1 })); S.sourceCfg = sf[0] || null; } catch (e) { S.sourceCfg = null; }
+
+    // Only ever show bugs whose issue belongs to the repo currently connected
+    // in settings — a bug from a different (or no longer configured) repo
+    // has nothing to do with what's on screen right now.
+    var activeRepo = (S.cfg && S.cfg.repo) ? S.cfg.repo.trim() : "";
+    if (activeRepo) {
+      bugs = bugs.filter(function (b) {
+        var iss = S.issueById[b.issue_id];
+        return !!(iss && iss.repo === activeRepo);
+      });
+    }
+    S.bugs = bugs.sort(function (a, b) { return String(b.created_at || "").localeCompare(String(a.created_at || "")); });
     S.loading = false;
   }
 
@@ -358,23 +423,30 @@
     var imp = Math.max(0, Math.min(100, Number(b.impact_score) || 0));
     var urg = Math.max(0, Math.min(100, Number(b.urgency_score) || 0));
     var conf = Math.round((Number(b.confidence) || 0) * 100);
+    var inc = S.incidentByBug[b.id];
+    var status = b.decision_status || "pending";
     var html = '<div class="card ' + sev + (S.newest === b.id ? ' flash' : '') + '" data-id="' + esc(b.id) + '">';
     html += '<div class="title">' + esc(b.title) + '</div>';
     html += '<div class="meta"><span class="tag type">' + esc(b.bug_type || "other") + '</span>';
     html += '<span class="tag">conf ' + conf + '%</span>';
+    if (inc) html += '<span class="tag" style="color:' + (inc.status === "resolved" ? 'var(--green)' : 'var(--p1)') + ';background:' + (inc.status === "resolved" ? 'var(--green-soft)' : 'var(--p1-soft)') + '">' + (inc.status === "resolved" ? "resolved" : "incident") + '</span>';
+    if (b.assignee_login) html += '<span class="tag">@' + esc(b.assignee_login) + '</span>';
+    if (status !== "pending") html += '<span class="tag" style="color:var(--accent);background:var(--accent-soft)">' + esc(status) + '</span>';
     if (b.is_duplicate) html += '<span class="tag" style="color:var(--p2);background:var(--p2-soft)">duplicate</span>';
     html += '</div>';
     html += '<div class="scores"><div class="score"><div class="lab"><span>Impact</span><span class="mono">' + imp + '</span></div><div class="track"><span style="width:' + imp + '%"></span></div></div>' +
             '<div class="score"><div class="lab"><span>Urgency</span><span class="mono">' + urg + '</span></div><div class="track"><span style="width:' + urg + '%"></span></div></div></div>';
-    if (iss && iss.url) html += '<div class="src">source: ' + esc(iss.source || "—") + ' · <a href="' + esc(iss.url) + '" target="_blank" rel="noopener">link ↗</a></div>';
-    else if (iss) html += '<div class="src">source: ' + esc(iss.source || "—") + (iss.reporter ? ' · ' + esc(iss.reporter) : '') + '</div>';
-    if (b.duplicate_of) html += '<div class="dup">↔ likely duplicate of: ' + esc(b.duplicate_of) + '</div>';
-
-    html += incidentHtml(b);
-    html += ownerHtml(b);
-    html += fixPrHtml(b);
+    if (iss && iss.url) html += '<div class="compact-row"><div class="src">source: ' + esc(iss.source || "—") + ' · <a href="' + esc(iss.url) + '" target="_blank" rel="noopener">link ↗</a></div><span class="mono">' + sev + '</span></div>';
+    else if (iss) html += '<div class="compact-row"><div class="src">source: ' + esc(iss.source || "—") + (iss.reporter ? ' · ' + esc(iss.reporter) : '') + '</div><span class="mono">' + sev + '</span></div>';
+    else html += '<div class="compact-row"><div class="src">source: unknown</div><span class="mono">' + sev + '</span></div>';
+    if (b.jira_issue_url) html += '<div class="src" style="margin-top:-4px">jira: <a href="' + esc(b.jira_issue_url) + '" target="_blank" rel="noopener">' + esc(b.jira_issue_key || "ticket") + ' ↗</a></div>';
 
     var det = '';
+    if (b.duplicate_of) det += '<div class="dup">↔ likely duplicate of: ' + esc(b.duplicate_of) + '</div>';
+    det += incidentHtml(b);
+    det += ownerHtml(b);
+    det += fixPrHtml(b);
+    det += decisionHtml(b);
     if (b.reasoning) det += '<p class="reason"><strong style="color:var(--text-2)">Why ' + esc(b.severity) + ':</strong> ' + esc(b.reasoning) + '</p>';
     if (fix) {
       det += '<div class="fix"><div class="fx-title">' + ic("tool", 14) + ' ' + esc(fix.title || "Suggested fix") +
@@ -384,7 +456,7 @@
       if (fix.code_snippet) det += '<pre class="mono">' + esc(fix.code_snippet) + '</pre>';
       det += '</div>';
     }
-    if (det) html += '<details><summary>Reasoning &amp; suggested fix</summary>' + det + '</details>';
+    if (det) html += '<details class="card-actions"><summary>Actions &amp; details</summary>' + det + '</details>';
     html += '</div>';
     return html;
   }
@@ -408,12 +480,12 @@
   }
 
   function boardPageHtml() {
-    return metricsHtml() +
+    return '<div class="board-page">' + metricsHtml() +
       '<div class="toolbar"><div class="search">' + ic("search", 15) + ' <input id="q" placeholder="Search bugs, types, fixes…" value="' + esc(S.q) + '" /></div>' +
       '<div class="chips">' + ["all", "P1", "P2", "P3"].map(function (f) {
         return '<button class="chip ' + (S.filter === f ? "active" : "") + '" data-f="' + f + '">' + (f === "all" ? "All" : f) + '</button>';
       }).join("") + '</div></div>' +
-      '<div class="board">' + columnHtml("P1") + columnHtml("P2") + columnHtml("P3") + '</div>';
+      '<div class="board">' + columnHtml("P1") + columnHtml("P2") + columnHtml("P3") + '</div></div>';
   }
 
   function releasesPageHtml() {
@@ -427,20 +499,50 @@
       list + '</div>';
   }
 
+  function rightRailHtml() {
+    var c = { P1: 0, P2: 0, P3: 0 };
+    S.bugs.forEach(function (b) { c[sevOf(b)]++; });
+    var openInc = Object.keys(S.incidentByBug || {}).filter(function (id) {
+      var inc = S.incidentByBug[id];
+      return inc && inc.status !== "resolved";
+    }).length;
+    var avg = S.bugs.length ? Math.round(100 * S.bugs.reduce(function (s, b) { return s + (Number(b.confidence) || 0); }, 0) / S.bugs.length) : 0;
+    return '<aside class="right-rail"><h3>On this board</h3>' +
+      '<span class="rail-link">Open bugs: <strong style="color:var(--text)">' + S.bugs.length + '</strong></span>' +
+      '<span class="rail-link">Critical P1: <strong style="color:var(--p1)">' + c.P1 + '</strong></span>' +
+      '<span class="rail-link">High P2: <strong style="color:var(--p2)">' + c.P2 + '</strong></span>' +
+      '<span class="rail-link">Low P3: <strong style="color:var(--p3)">' + c.P3 + '</strong></span>' +
+      '<span class="rail-link">Open incidents: <strong style="color:var(--text)">' + openInc + '</strong></span>' +
+      '<span class="rail-link">Avg confidence: <strong style="color:var(--green)">' + avg + '%</strong></span>' +
+      '<span class="rail-link">Release notes: <strong style="color:var(--text)">' + S.notes.length + '</strong></span>' +
+      '</aside>';
+  }
+
   // ---------- render: root ----------
   function render() {
     var who = S.user ? (S.user.email || S.user.name || "you") : "…";
     var html = '<div class="app">';
-    html += '<div class="topbar"><div class="brand"><div class="logo">C</div><div><h1>Cortex-Triage</h1><p>Operator board</p></div></div>' +
+    html += '<div class="topbar"><div class="brand"><div class="logo"><span></span></div><h1>Cortex</h1><p>Operator Board</p></div>' +
       '<div class="spacer"></div>' +
+      '<div class="top-search">' + ic("search", 17) + '<input id="qTop" placeholder="Search incidents" value="' + esc(S.q) + '" /></div>' +
       '<span class="who"><span class="av">' + esc(initials(who)) + '</span> ' + esc(who) + '</span>' +
       '<button class="icon-btn" id="btnRefresh" title="Refresh">' + ic("refresh", 16) + '</button>' +
       '<button class="icon-btn" id="btnSettings" title="Connect GitHub repo">' + ic("sliders", 16) + '</button></div>';
-    html += '<div class="tabbar">' +
-      '<button class="tab-btn ' + (S.tab === "board" ? "active" : "") + '" data-tab="board">Board</button>' +
-      '<button class="tab-btn ' + (S.tab === "releases" ? "active" : "") + '" data-tab="releases">Releases</button>' +
-      '</div>';
-    html += S.tab === "releases" ? releasesPageHtml() : boardPageHtml();
+    html += '<div class="shell"><aside class="side-nav">' +
+      '<div class="nav-section">Operate</div><div class="tabbar">' +
+      '<button class="tab-btn ' + (S.tab === "board" ? "active" : "") + '" data-tab="board">' + ic("target", 17) + ' Dashboard</button>' +
+      '<button class="tab-btn ' + (S.tab === "releases" ? "active" : "") + '" data-tab="releases">' + ic("list", 17) + ' Releases</button>' +
+      '</div><div class="nav-section">Triage flow</div><div class="nav-list">' +
+      '<div class="nav-item">' + ic("alertCircle", 17) + ' Incidents</div>' +
+      '<div class="nav-item">' + ic("tool", 17) + ' Suggested fixes</div>' +
+      '<div class="nav-item">' + ic("gitPr", 17) + ' GitHub actions</div>' +
+      '<div class="nav-item">' + ic("check", 17) + ' Decisions</div>' +
+      '</div></aside><main class="main">' +
+      '<section class="content-head"><div class="eyebrow"><span class="sq">' + ic(S.tab === "releases" ? "list" : "target", 16) + '</span>' + (S.tab === "releases" ? "Release center" : "Live triage") + '</div>' +
+      '<h2>' + (S.tab === "releases" ? "Releases" : "Dashboard") + '</h2>' +
+      '<p>' + (S.tab === "releases" ? "Compile ship-ready notes from triaged bugs and suggested fixes." : "Severity lanes stay fixed while each queue scrolls on its own.") + '</p></section>' +
+      (S.tab === "releases" ? releasesPageHtml() : boardPageHtml()) +
+      '</main></div>';
     html += '</div><button class="fab" id="btnNew" title="New bug report">' + ic("plus", 22) + '</button>';
     $("#root").innerHTML = html;
 
@@ -448,6 +550,7 @@
     $("#btnRefresh").onclick = function () { loadAll().then(render).then(function(){ toast("Refreshed"); }); };
     $("#btnSettings").onclick = openSettings;
     Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function (t) { t.onclick = function () { S.tab = t.dataset.tab; render(); }; });
+    var qHead = $("#qTop"); if (qHead) { qHead.oninput = function () { S.q = qHead.value; var pos = qHead.selectionStart; render(); var n = $("#qTop"); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} }; }
 
     if (S.tab === "board") {
       var q = $("#q"); if (q) { q.oninput = function () { S.q = q.value; var pos = q.selectionStart; render(); var n = $("#q"); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} }; }
@@ -455,6 +558,7 @@
       Array.prototype.forEach.call(document.querySelectorAll(".assign-btn"), function (b) { b.onclick = function () { approveAssign(b.dataset.bug, b); }; });
       Array.prototype.forEach.call(document.querySelectorAll(".ack-btn"), function (b) { b.onclick = function () { ackIncident(b.dataset.inc, b); }; });
       Array.prototype.forEach.call(document.querySelectorAll(".resolve-btn"), function (b) { b.onclick = function () { resolveIncident(b.dataset.inc, b); }; });
+      Array.prototype.forEach.call(document.querySelectorAll(".decide-btn"), function (b) { b.onclick = function () { decideBug(b.dataset.bug, b.dataset.decision, b); }; });
       if (S.newest) setTimeout(function () { S.newest = null; }, 1800);
     } else {
       var go = $("#nGo"); if (go) go.onclick = function () { compileNotes(($("#nVer").value || "").trim() || "v0.1.0", go); };
@@ -469,7 +573,7 @@
       '<div class="body" id="mbody">' +
       '<div class="field"><label>Title *</label><input id="f-title" placeholder="e.g. Checkout returns 500 for all users" /></div>' +
       '<div class="field"><label>Description</label><textarea id="f-body" rows="4" placeholder="What happened, who is affected, since when…"></textarea></div>' +
-      '<div class="field"><label>Source</label><select id="f-source"><option value="manual">manual</option><option value="github">github</option><option value="slack">slack</option><option value="email">email</option></select></div>' +
+      '<div class="field"><label>Source</label><select id="f-source"><option value="manual">manual</option><option value="github">github</option><option value="jira">jira</option><option value="slack">slack</option><option value="email">email</option></select></div>' +
       '<div class="field"><label>GitHub issue # <span style="color:var(--muted);font-weight:400">(optional — enables auto-assign back to the repo)</span></label><input id="f-extid" class="mono" placeholder="e.g. 12" /></div>' +
       '</div><div class="foot"><button class="btn ghost" id="m-cancel">Cancel</button><button class="btn primary" id="m-go">Triage it →</button></div></div>';
     document.body.appendChild(scrim);
@@ -621,6 +725,7 @@
         '<input class="assignee-input mono" data-bug="' + esc(b.id) + '" value="' + esc(b.assignee_login) + '" style="flex:1;background:var(--surface);border:1px solid var(--border-strong);border-radius:9px;padding:6px 10px;font-size:13px;color:var(--text);outline:none" />' +
         '</div>' +
         '<div style="font-size:11.5px;color:var(--text-2);margin-top:6px">' + esc(b.assignee_reason || "") + commit + '</div>' +
+        (b.assignee_candidates ? '<div style="font-size:11px;color:var(--muted);margin-top:5px">also has context: ' + esc(b.assignee_candidates) + '</div>' : '') +
         '<button class="btn primary assign-btn" data-bug="' + esc(b.id) + '" style="margin-top:10px;padding:6px 13px;font-size:12px">Approve &amp; assign →</button>' +
         '</div>';
     }
@@ -640,12 +745,54 @@
     } catch (e) { toast("Assign failed: " + (e.message || e), "err"); btn.disabled = false; btn.textContent = old; }
   }
 
+  // ---------- Backlog decision: assign / defer / backlog / close ----------
+  function decisionHtml(b) {
+    var status = b.decision_status || "pending";
+    if (status !== "pending") {
+      var label = { assigned: "assigned", deferred: "deferred", backlogged: "backlogged", closed: "closed" }[status] || status;
+      var when = b.deferred_until ? (' until ' + esc(String(b.deferred_until).slice(0, 10))) : '';
+      return '<div class="panel soft" style="font-size:12px;color:var(--text-2)">' +
+        '<span style="font-weight:600;color:var(--text)">decision: ' + esc(label) + when + '</span>' +
+        (b.decision_reason ? '<div style="margin-top:4px;color:var(--text-2)">' + esc(b.decision_reason) + '</div>' : '') +
+        (b.decision_by ? '<div style="margin-top:4px;font-size:11px;color:var(--muted)">by ' + esc(b.decision_by) + (b.decided_at ? ' · ' + esc(String(b.decided_at).slice(0, 10)) : '') + '</div>' : '') +
+        '</div>';
+    }
+    var ctx = (b.is_production_code === false ? 'non-production' : 'production') +
+      ' · ' + (b.affected_service_count || 1) + ' service' + ((b.affected_service_count || 1) === 1 ? '' : 's') +
+      ' · ' + esc(b.fix_complexity || 'moderate') + ' fix';
+    return '<div class="panel soft">' +
+      '<div style="font-size:11.5px;color:var(--muted)">investigation context: ' + ctx + '</div>' +
+      '<input class="decision-reason mono" data-bug="' + esc(b.id) + '" placeholder="why (optional)" style="width:100%;margin-top:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:9px;padding:6px 10px;font-size:12.5px;color:var(--text);outline:none" />' +
+      '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+      '<button class="btn primary decide-btn" data-bug="' + esc(b.id) + '" data-decision="assign" style="padding:5px 11px;font-size:11.5px">Assign</button>' +
+      '<button class="btn ghost decide-btn" data-bug="' + esc(b.id) + '" data-decision="defer" style="padding:5px 11px;font-size:11.5px">Defer 2wk</button>' +
+      '<button class="btn ghost decide-btn" data-bug="' + esc(b.id) + '" data-decision="backlog" style="padding:5px 11px;font-size:11.5px">Backlog</button>' +
+      '<button class="btn ghost decide-btn" data-bug="' + esc(b.id) + '" data-decision="close" style="padding:5px 11px;font-size:11.5px">Close, not relevant</button>' +
+      '</div></div>';
+  }
+
+  async function decideBug(bugId, decision, btn) {
+    var input = document.querySelector('.decision-reason[data-bug="' + bugId + '"]');
+    var reason = input ? input.value.trim() : "";
+    btn.disabled = true; var old = btn.textContent; btn.textContent = "Saving…";
+    try {
+      var res = await client.functions.run("decide_bug", { input: {
+        bug_id: bugId, decision: decision, reason: reason,
+        decided_by: (S.user && S.user.email) || "", defer_days: 14
+      } });
+      var out = (res && (res.output_data || res.output)) || {};
+      if (out && out.ok) { toast(out.detail || "Decision recorded", "ok"); await loadAll(); render(); }
+      else { toast("Decision failed: " + ((out && out.detail) || "unknown"), "err"); btn.disabled = false; btn.textContent = old; }
+    } catch (e) { toast("Decision failed: " + (e.message || e), "err"); btn.disabled = false; btn.textContent = old; }
+  }
+
   // ---------- Settings: connect a GitHub repo (+ optional PAT) ----------
   function openSettings() {
     var scrim = h('<div class="scrim"></div>');
     var repo = S.cfg && S.cfg.repo ? S.cfg.repo : "";
     var webhook = S.alertCfg && S.alertCfg.slack_webhook_url ? S.alertCfg.slack_webhook_url : "";
     var escMin = S.alertCfg && S.alertCfg.escalation_minutes ? S.alertCfg.escalation_minutes : 15;
+    var src = S.sourceCfg || {};
     scrim.innerHTML =
       '<div class="modal"><div class="head"><h2 style="display:flex;align-items:center;gap:9px">' + ic("sliders", 16) + ' Settings</h2></div>' +
       '<div class="body">' +
@@ -653,6 +800,13 @@
       '<div class="field"><label>Repository (owner/name)</label><input id="s-repo" class="mono" placeholder="octocat/Hello-World" value="' + esc(repo) + '" /></div>' +
       '<div class="field"><label>Personal access token <span style="color:var(--muted);font-weight:400">(only needed to auto-assign; stored privately)</span></label><input id="s-pat" type="password" placeholder="ghp_… (fine-scoped, repo access)" /></div>' +
       '<div style="font-size:11.5px;color:var(--muted);line-height:1.55">Reading a <strong>public</strong> repo needs no token — Cortex can already find the likely owner. A token is used only when you click "Approve &amp; assign". Use a fine-scoped token and revoke it after the demo.</div>' +
+      '<div style="font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-top:6px">Source connectors</div>' +
+      '<div class="field"><label>Jira base URL</label><input id="s-jira-url" class="mono" placeholder="https://your-team.atlassian.net" value="' + esc(src.jira_base_url || "") + '" /></div>' +
+      '<div class="field"><label>Jira project key / JQL</label><div style="display:flex;gap:8px"><input id="s-jira-project" class="mono" placeholder="ENG" value="' + esc(src.jira_project_key || "") + '" /><input id="s-jira-jql" class="mono" placeholder="project = ENG AND status changed" value="' + esc(src.jira_jql || "") + '" /></div></div>' +
+      '<div class="field"><label>Jira email / API token</label><div style="display:flex;gap:8px"><input id="s-jira-email" class="mono" placeholder="you@company.com" value="' + esc(src.jira_email || "") + '" /><input id="s-jira-token" type="password" placeholder="Jira API token" /></div></div>' +
+      '<div class="field"><label>Slack channel / bot token</label><div style="display:flex;gap:8px"><input id="s-slack-channel" class="mono" placeholder="C0123456789" value="' + esc(src.slack_channel_id || "") + '" /><input id="s-slack-token" type="password" placeholder="xoxb-..." /></div></div>' +
+      '<div class="field"><label>Email intake address</label><input id="s-email-inbox" class="mono" placeholder="bugs@company.com" value="' + esc(src.email_inbox_address || "") + '" /></div>' +
+      '<div style="font-size:11.5px;color:var(--muted);line-height:1.55">External systems can post normalized payloads to ingest_external_report; Cortex dedupes them and queues them for triage.</div>' +
       '<div style="font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-top:6px">Alerts</div>' +
       '<div class="field"><label>Slack incoming webhook URL <span style="color:var(--muted);font-weight:400">(P1/P2 incidents post here)</span></label><input id="s-webhook" class="mono" placeholder="https://hooks.slack.com/services/…" value="' + esc(webhook) + '" /></div>' +
       '<div class="field"><label>Escalation window (minutes)</label><input id="s-escmin" type="number" min="1" value="' + esc(escMin) + '" /></div>' +
@@ -663,12 +817,29 @@
     $("#s-save", scrim).onclick = async function () {
       var repoVal = $("#s-repo", scrim).value.trim(), patVal = $("#s-pat", scrim).value.trim();
       var webhookVal = $("#s-webhook", scrim).value.trim(), escMinVal = parseInt($("#s-escmin", scrim).value, 10) || 15;
-      if (!repoVal) { toast("Repository is required", "err"); return; }
       try {
-        var payload = { repo: repoVal, label: "default" };
-        if (patVal) payload.pat = patVal;
-        if (S.cfg && S.cfg.id) await client.records.update("github_config", S.cfg.id, payload);
-        else await client.records.create("github_config", payload);
+        if (repoVal || patVal || (S.cfg && S.cfg.id)) {
+          var payload = { repo: repoVal || "owner/name", label: "default" };
+          if (patVal) payload.pat = patVal;
+          if (S.cfg && S.cfg.id) await client.records.update("github_config", S.cfg.id, payload);
+          else await client.records.create("github_config", payload);
+        }
+
+        var sourcePayload = {
+          label: "default",
+          jira_base_url: $("#s-jira-url", scrim).value.trim(),
+          jira_email: $("#s-jira-email", scrim).value.trim(),
+          jira_project_key: $("#s-jira-project", scrim).value.trim(),
+          jira_jql: $("#s-jira-jql", scrim).value.trim(),
+          slack_channel_id: $("#s-slack-channel", scrim).value.trim(),
+          email_inbox_address: $("#s-email-inbox", scrim).value.trim(),
+          auto_triage_enabled: true
+        };
+        var jiraToken = $("#s-jira-token", scrim).value.trim(), slackToken = $("#s-slack-token", scrim).value.trim();
+        if (jiraToken) sourcePayload.jira_api_token = jiraToken;
+        if (slackToken) sourcePayload.slack_bot_token = slackToken;
+        if (S.sourceCfg && S.sourceCfg.id) await client.records.update("source_config", S.sourceCfg.id, sourcePayload);
+        else await client.records.create("source_config", sourcePayload);
 
         var alertPayload = { slack_webhook_url: webhookVal, escalation_minutes: escMinVal, label: "default" };
         if (S.alertCfg && S.alertCfg.id) await client.records.update("alert_config", S.alertCfg.id, alertPayload);

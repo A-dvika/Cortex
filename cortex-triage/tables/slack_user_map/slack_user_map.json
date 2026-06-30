@@ -1,0 +1,12 @@
+{
+  "name": "slack_user_map",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "visibility": "POD",
+  "columns": [
+    { "name": "github_login", "type": "TEXT", "required": true, "max_length": 120 },
+    { "name": "slack_user_id", "type": "TEXT", "required": true, "max_length": 60 },
+    { "name": "slack_username", "type": "TEXT", "max_length": 120 }
+  ],
+  "config": {}
+}

@@ -1,0 +1,28 @@
+{
+  "name": "route-message",
+  "description": "Classifies a free-form Slack message into one of Cortex-Triage's MCP tools using the slack-router agent.",
+  "start": { "type": "MANUAL" },
+  "nodes": [
+    { "id": "intake", "type": "FORM", "label": "Message",
+      "config": { "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "title": "Message" }
+        },
+        "required": ["message"]
+      } } },
+
+    { "id": "route", "type": "AGENT", "label": "Classify intent",
+      "config": { "agent_name": "slack-router",
+        "input_mapping": {
+          "message": { "type": "expression", "value": "intake.message" }
+        } } },
+
+    { "id": "end", "type": "END", "label": "Routed" }
+  ],
+  "edges": [
+    { "id": "e1", "source": "intake", "target": "route" },
+    { "id": "e2", "source": "route", "target": "end" }
+  ],
+  "visibility": "POD"
+}

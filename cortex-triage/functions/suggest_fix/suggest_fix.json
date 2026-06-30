@@ -1,0 +1,8 @@
+{
+  "name": "suggest_fix",
+  "description": "Deterministically proposes a conservative first-pass fix or diagnostic step for a triaged bug.",
+  "type": "API",
+  "visibility": "POD",
+  "code": { "$file": "code.py" },
+  "permissions": { "grants": [] }
+}

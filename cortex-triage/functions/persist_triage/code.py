@@ -16,6 +16,11 @@ from lemma_sdk import FunctionContext, Pod
 
 
 class PersistTriageInput(BaseModel):
+    # If set, this run is triaging an issue that already exists (e.g. the
+    # auto-triage-issue workflow, started by that row's own INSERT) — update
+    # it instead of creating a second one. Empty for the manual-intake path.
+    issue_id: str = ""
+
     # --- from the intake form ---
     title: str
     body: str = ""
@@ -33,6 +38,9 @@ class PersistTriageInput(BaseModel):
     is_duplicate: bool = False
     duplicate_of: str = ""
     reasoning: str = ""
+    is_production_code: bool = True
+    affected_service_count: int = 1
+    fix_complexity: str = "moderate"
 
     # --- from the fix-suggester agent ---
     fix_title: str = ""
@@ -63,16 +71,32 @@ def _row_id(record) -> Optional[str]:
 async def persist_triage(ctx: FunctionContext, data: PersistTriageInput) -> PersistTriageResult:
     pod = Pod.from_env()  # authenticated as this function's workload principal
 
-    issue = pod.table("issues").create({
-        "source": data.source or "manual",
-        "external_id": data.external_id,
-        "title": data.title,
-        "body": data.body,
-        "url": data.url,
-        "reporter": data.reporter,
-        "triage_status": "triaged",
-    })
-    issue_id = _row_id(issue)
+    repo = ""
+    try:
+        cfgs = pod.records.list("github_config", limit=1).to_dict()["items"]
+        if cfgs:
+            repo = (cfgs[0].get("repo") or "").strip()
+    except Exception:
+        pass
+
+    if data.issue_id:
+        issue_id = data.issue_id
+        try:
+            pod.table("issues").update(issue_id, {"triage_status": "triaged"})
+        except Exception:
+            pass
+    else:
+        issue = pod.table("issues").create({
+            "source": data.source or "manual",
+            "external_id": data.external_id,
+            "repo": repo,
+            "title": data.title,
+            "body": data.body,
+            "url": data.url,
+            "reporter": data.reporter,
+            "triage_status": "triaged",
+        })
+        issue_id = _row_id(issue)
 
     bug = pod.table("bugs").create({
         "issue_id": issue_id,
@@ -85,6 +109,10 @@ async def persist_triage(ctx: FunctionContext, data: PersistTriageInput) -> Pers
         "is_duplicate": bool(data.is_duplicate),
         "duplicate_of": data.duplicate_of,
         "reasoning": data.reasoning,
+        "is_production_code": bool(data.is_production_code),
+        "affected_service_count": int(data.affected_service_count or 1),
+        "fix_complexity": data.fix_complexity or "moderate",
+        "decision_status": "pending",
     })
     bug_id = _row_id(bug)
 
